@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.env
+*.log
+# rótulos de terceiros: regenerar com src/externos.py
+dados/*.parquet
+dados/ext_*.jsonl
+# respostas cruas do Jev (TypeSafe) não são redistribuídas
+dados/jev_cache.jsonl
+execucoes/jev/pedidos.jsonl
+execucoes/jev/respostas.jsonl

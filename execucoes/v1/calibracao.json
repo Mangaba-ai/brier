@@ -1,0 +1,14 @@
+{
+ "modo": "ft",
+ "temperaturas": {
+  "choice": 1.0,
+  "score": 1.0,
+  "noul": 1.0
+ },
+ "conformal": {
+  "choice": 0.9097074182580842,
+  "score": 0.9594777938709448,
+  "noul": 0.95315259107787
+ },
+ "nota": "temperatura 1: o ajuste por temperatura piorou o NLL no teste e nos externos"
+}

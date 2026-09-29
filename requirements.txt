@@ -1,0 +1,5 @@
+mlx-lm>=0.31
+pandas
+pyarrow
+httpx
+numpy

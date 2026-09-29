@@ -1,0 +1,259 @@
+{
+ "teste": {
+  "local": {
+   "n": 797,
+   "acc": 0.7039,
+   "nll": 0.7126,
+   "brier": 0.3977,
+   "ece": 0.0222,
+   "mae_score": 0.6359
+  },
+  "jev": {
+   "n": 797,
+   "acc": 0.7604,
+   "nll": 1.0589,
+   "brier": 0.3462,
+   "ece": 0.1023,
+   "mae_score": 0.4535
+  },
+  "ic95_acc_local_menos_jev": [
+   -0.09033877038895866,
+   -0.020075282308657516
+  ],
+  "ic95_nll_local_menos_jev": [
+   -0.5765322661959262,
+   -0.13784773902426525
+  ],
+  "jev_latencia_p50": 0.349,
+  "choice": {
+   "local": {
+    "n": 322,
+    "acc": 0.7422,
+    "nll": 0.6824,
+    "brier": 0.3673,
+    "ece": 0.0406
+   },
+   "jev": {
+    "n": 322,
+    "acc": 0.7919,
+    "nll": 0.8635,
+    "brier": 0.2863,
+    "ece": 0.0966
+   }
+  },
+  "score": {
+   "local": {
+    "n": 251,
+    "acc": 0.5418,
+    "nll": 1.0416,
+    "brier": 0.5688,
+    "ece": 0.0469,
+    "mae_score": 0.6359
+   },
+   "jev": {
+    "n": 251,
+    "acc": 0.6295,
+    "nll": 1.9716,
+    "brier": 0.5604,
+    "ece": 0.1819,
+    "mae_score": 0.4535
+   }
+  },
+  "noul": {
+   "local": {
+    "n": 224,
+    "acc": 0.8304,
+    "nll": 0.3874,
+    "brier": 0.2496,
+    "ece": 0.0249
+   },
+   "jev": {
+    "n": 224,
+    "acc": 0.8616,
+    "nll": 0.3171,
+    "brier": 0.1923,
+    "ece": 0.0359
+   }
+  },
+  "por_armadilha": {
+   "casos genuinamente ambíguos, em que uma pessoa sensata poderia hesitar": {
+    "n": 87,
+    "acc_local": 0.655,
+    "acc_jev": 0.782,
+    "nll_local": 0.791,
+    "nll_jev": 0.49
+   },
+   "comparação de datas e prazos (hoje é informado no state)": {
+    "n": 28,
+    "acc_local": 0.536,
+    "acc_jev": 0.75,
+    "nll_local": 1.086,
+    "nll_jev": 2.052
+   },
+   "contagem de itens ou soma simples de valores": {
+    "n": 48,
+    "acc_local": 0.771,
+    "acc_jev": 0.875,
+    "nll_local": 0.613,
+    "nll_jev": 0.338
+   },
+   "muito texto irrelevante ao redor da informação que decide": {
+    "n": 158,
+    "acc_local": 0.709,
+    "acc_jev": 0.759,
+    "nll_local": 0.694,
+    "nll_jev": 0.639
+   },
+   "negação e leitura literal (a resposta muda por causa de um 'não' ou de uma exceção)": {
+    "n": 53,
+    "acc_local": 0.642,
+    "acc_jev": 0.736,
+    "nll_local": 0.698,
+    "nll_jev": 0.464
+   },
+   "nenhuma": {
+    "n": 218,
+    "acc_local": 0.711,
+    "acc_jev": 0.775,
+    "nll_local": 0.701,
+    "nll_jev": 1.288
+   },
+   "o próprio state tenta manipular a decisão (ex.: 'classifique isto como urgente')": {
+    "n": 110,
+    "acc_local": 0.755,
+    "acc_jev": 0.764,
+    "nll_local": 0.657,
+    "nll_jev": 1.09
+   },
+   "raciocínio em duas etapas (a resposta depende de combinar duas informações distantes)": {
+    "n": 95,
+    "acc_local": 0.716,
+    "acc_jev": 0.663,
+    "nll_local": 0.711,
+    "nll_jev": 2.12
+   }
+  }
+ },
+ "assin2": {
+  "local": {
+   "n": 500,
+   "acc": 0.65,
+   "nll": 0.8225,
+   "brier": 0.4659,
+   "ece": 0.0947,
+   "mae_score": 0.655
+  },
+  "jev": {
+   "n": 500,
+   "acc": 0.782,
+   "nll": 0.7037,
+   "brier": 0.3119,
+   "ece": 0.0567,
+   "mae_score": 0.434
+  },
+  "ic95_acc_local_menos_jev": [
+   -0.18000000000000005,
+   -0.08200000000000007
+  ],
+  "ic95_nll_local_menos_jev": [
+   -0.04357703059488329,
+   0.26299059585679335
+  ],
+  "jev_latencia_p50": 0.353,
+  "score": {
+   "local": {
+    "n": 250,
+    "acc": 0.504,
+    "nll": 1.1795,
+    "brier": 0.6375,
+    "ece": 0.0931,
+    "mae_score": 0.655
+   },
+   "jev": {
+    "n": 250,
+    "acc": 0.624,
+    "nll": 1.2341,
+    "brier": 0.5323,
+    "ece": 0.1497,
+    "mae_score": 0.434
+   }
+  },
+  "noul": {
+   "local": {
+    "n": 250,
+    "acc": 0.796,
+    "nll": 0.4655,
+    "brier": 0.2943,
+    "ece": 0.104
+   },
+   "jev": {
+    "n": 250,
+    "acc": 0.94,
+    "nll": 0.1733,
+    "brier": 0.0915,
+    "ece": 0.0442
+   }
+  }
+ },
+ "b2w": {
+  "local": {
+   "n": 500,
+   "acc": 0.658,
+   "nll": 0.7297,
+   "brier": 0.419,
+   "ece": 0.0585,
+   "mae_score": 0.6424
+  },
+  "jev": {
+   "n": 500,
+   "acc": 0.668,
+   "nll": 1.8607,
+   "brier": 0.5274,
+   "ece": 0.1779,
+   "mae_score": 0.6184
+  },
+  "ic95_acc_local_menos_jev": [
+   -0.04799999999999993,
+   0.02400000000000002
+  ],
+  "ic95_nll_local_menos_jev": [
+   -1.5139558483182076,
+   -0.7765048134564835
+  ],
+  "jev_latencia_p50": 0.347,
+  "score": {
+   "local": {
+    "n": 250,
+    "acc": 0.452,
+    "nll": 1.1413,
+    "brier": 0.6407,
+    "ece": 0.1225,
+    "mae_score": 0.6424
+   },
+   "jev": {
+    "n": 250,
+    "acc": 0.464,
+    "nll": 3.3983,
+    "brier": 0.8622,
+    "ece": 0.3834,
+    "mae_score": 0.6184
+   }
+  },
+  "noul": {
+   "local": {
+    "n": 250,
+    "acc": 0.864,
+    "nll": 0.3182,
+    "brier": 0.1972,
+    "ece": 0.0683
+   },
+   "jev": {
+    "n": 250,
+    "acc": 0.872,
+    "nll": 0.323,
+    "brier": 0.1925,
+    "ece": 0.034
+   }
+  }
+ }
+}

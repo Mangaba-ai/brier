@@ -1,0 +1,998 @@
+{
+ "base": {
+  "temperaturas": {
+   "choice": 4.0,
+   "score": 4.0,
+   "noul": 4.0
+  },
+  "qhat": {
+   "choice": 0.9704506337114396,
+   "score": 0.9938010373879573,
+   "noul": 0.9844656314164159
+  },
+  "teste": {
+   "cru": {
+    "n": 797,
+    "acc": 0.5859,
+    "nll": 3.9249,
+    "brier": 0.7593,
+    "ece": 0.3668,
+    "mae_score": 0.8149
+   },
+   "calibrado": {
+    "n": 797,
+    "acc": 0.5859,
+    "nll": 1.2145,
+    "brier": 0.6113,
+    "ece": 0.2167,
+    "mae_score": 0.8283
+   },
+   "conformal_90": {
+    "choice": {
+     "qhat": 0.9705,
+     "cobertura": 0.9658,
+     "tamanho_medio": 3.27,
+     "decide_sozinho": 0.0062
+    },
+    "score": {
+     "qhat": 0.9938,
+     "cobertura": 0.9641,
+     "tamanho_medio": 3.841,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9845,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.987,
+     "decide_sozinho": 0.0134
+    }
+   },
+   "calibrado_choice": {
+    "n": 322,
+    "acc": 0.6118,
+    "nll": 1.0415,
+    "brier": 0.5315,
+    "ece": 0.1742
+   },
+   "calibrado_score": {
+    "n": 251,
+    "acc": 0.4343,
+    "nll": 1.9655,
+    "brier": 0.8916,
+    "ece": 0.3536,
+    "mae_score": 0.8283
+   },
+   "calibrado_noul": {
+    "n": 224,
+    "acc": 0.7188,
+    "nll": 0.6218,
+    "brier": 0.4118,
+    "ece": 0.1335
+   }
+  },
+  "assin2": {
+   "cru": {
+    "n": 500,
+    "acc": 0.446,
+    "nll": 4.7791,
+    "brier": 1.0275,
+    "ece": 0.5038,
+    "mae_score": 0.7752
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.446,
+    "nll": 1.4383,
+    "brier": 0.8021,
+    "ece": 0.3509,
+    "mae_score": 0.7337
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9938,
+     "cobertura": 0.996,
+     "tamanho_medio": 4.2,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9845,
+     "cobertura": 1.0,
+     "tamanho_medio": 2.0,
+     "decide_sozinho": 0.0
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.308,
+    "nll": 1.5494,
+    "brier": 0.8502,
+    "ece": 0.3337,
+    "mae_score": 0.7337
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.584,
+    "nll": 1.3272,
+    "brier": 0.7539,
+    "ece": 0.3734
+   }
+  },
+  "b2w": {
+   "cru": {
+    "n": 500,
+    "acc": 0.636,
+    "nll": 3.7613,
+    "brier": 0.6792,
+    "ece": 0.3304,
+    "mae_score": 0.6701
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.636,
+    "nll": 1.1132,
+    "brier": 0.566,
+    "ece": 0.2223,
+    "mae_score": 0.6782
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9938,
+     "cobertura": 0.976,
+     "tamanho_medio": 3.72,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9845,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.82,
+     "decide_sozinho": 0.18
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.448,
+    "nll": 1.8523,
+    "brier": 0.8933,
+    "ece": 0.3862,
+    "mae_score": 0.6782
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.824,
+    "nll": 0.374,
+    "brier": 0.2387,
+    "ece": 0.0584
+   }
+  }
+ },
+ "ft": {
+  "temperaturas": {
+   "choice": 1.0256294569306048,
+   "score": 1.4572180821818477,
+   "noul": 1.334722664474056
+  },
+  "qhat": {
+   "choice": 0.9052227086034804,
+   "score": 0.9095413209506951,
+   "noul": 0.9217486848900815
+  },
+  "teste": {
+   "cru": {
+    "n": 797,
+    "acc": 0.7039,
+    "nll": 0.7126,
+    "brier": 0.3977,
+    "ece": 0.0222,
+    "mae_score": 0.6359
+   },
+   "calibrado": {
+    "n": 797,
+    "acc": 0.7039,
+    "nll": 0.7194,
+    "brier": 0.3994,
+    "ece": 0.0458,
+    "mae_score": 0.6804
+   },
+   "conformal_90": {
+    "choice": {
+     "qhat": 0.9052,
+     "cobertura": 0.972,
+     "tamanho_medio": 2.32,
+     "decide_sozinho": 0.2391
+    },
+    "score": {
+     "qhat": 0.9095,
+     "cobertura": 0.988,
+     "tamanho_medio": 3.271,
+     "decide_sozinho": 0.004
+    },
+    "noul": {
+     "qhat": 0.9217,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.79,
+     "decide_sozinho": 0.2098
+    }
+   },
+   "calibrado_choice": {
+    "n": 322,
+    "acc": 0.7422,
+    "nll": 0.684,
+    "brier": 0.3677,
+    "ece": 0.039
+   },
+   "calibrado_score": {
+    "n": 251,
+    "acc": 0.5418,
+    "nll": 1.0512,
+    "brier": 0.5707,
+    "ece": 0.0663,
+    "mae_score": 0.6804
+   },
+   "calibrado_noul": {
+    "n": 224,
+    "acc": 0.8304,
+    "nll": 0.3984,
+    "brier": 0.2529,
+    "ece": 0.0536
+   }
+  },
+  "assin2": {
+   "cru": {
+    "n": 500,
+    "acc": 0.65,
+    "nll": 0.8225,
+    "brier": 0.4659,
+    "ece": 0.0947,
+    "mae_score": 0.655
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.65,
+    "nll": 0.8697,
+    "brier": 0.4898,
+    "ece": 0.1445,
+    "mae_score": 0.6975
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9095,
+     "cobertura": 0.996,
+     "tamanho_medio": 4.044,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9217,
+     "cobertura": 1.0,
+     "tamanho_medio": 2.0,
+     "decide_sozinho": 0.0
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.504,
+    "nll": 1.2388,
+    "brier": 0.6594,
+    "ece": 0.1507,
+    "mae_score": 0.6975
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.796,
+    "nll": 0.5007,
+    "brier": 0.3201,
+    "ece": 0.1424
+   }
+  },
+  "b2w": {
+   "cru": {
+    "n": 500,
+    "acc": 0.658,
+    "nll": 0.7297,
+    "brier": 0.419,
+    "ece": 0.0585,
+    "mae_score": 0.6424
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.658,
+    "nll": 0.7427,
+    "brier": 0.419,
+    "ece": 0.0737,
+    "mae_score": 0.6597
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9095,
+     "cobertura": 0.992,
+     "tamanho_medio": 3.416,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9217,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.78,
+     "decide_sozinho": 0.22
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.452,
+    "nll": 1.137,
+    "brier": 0.6265,
+    "ece": 0.0584,
+    "mae_score": 0.6597
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.864,
+    "nll": 0.3483,
+    "brier": 0.2114,
+    "ece": 0.1102
+   }
+  }
+ },
+ "swa": {
+  "temperaturas": {
+   "choice": 0.9815755395206851,
+   "score": 1.394626115261553,
+   "noul": 1.2773922498408246
+  },
+  "qhat": {
+   "choice": 0.9114093085196302,
+   "score": 0.9236615536186117,
+   "noul": 0.9240177236046391
+  },
+  "teste": {
+   "cru": {
+    "n": 797,
+    "acc": 0.6876,
+    "nll": 0.7158,
+    "brier": 0.4008,
+    "ece": 0.0267,
+    "mae_score": 0.6351
+   },
+   "calibrado": {
+    "n": 797,
+    "acc": 0.6876,
+    "nll": 0.7213,
+    "brier": 0.4017,
+    "ece": 0.0315,
+    "mae_score": 0.6757
+   },
+   "conformal_90": {
+    "choice": {
+     "qhat": 0.9114,
+     "cobertura": 0.9689,
+     "tamanho_medio": 2.379,
+     "decide_sozinho": 0.2329
+    },
+    "score": {
+     "qhat": 0.9237,
+     "cobertura": 0.996,
+     "tamanho_medio": 3.446,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.924,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.835,
+     "decide_sozinho": 0.1652
+    }
+   },
+   "calibrado_choice": {
+    "n": 322,
+    "acc": 0.7298,
+    "nll": 0.684,
+    "brier": 0.3691,
+    "ece": 0.0272
+   },
+   "calibrado_score": {
+    "n": 251,
+    "acc": 0.5299,
+    "nll": 1.0522,
+    "brier": 0.5711,
+    "ece": 0.0577,
+    "mae_score": 0.6757
+   },
+   "calibrado_noul": {
+    "n": 224,
+    "acc": 0.8036,
+    "nll": 0.4042,
+    "brier": 0.2588,
+    "ece": 0.048
+   }
+  },
+  "assin2": {
+   "cru": {
+    "n": 500,
+    "acc": 0.618,
+    "nll": 0.8392,
+    "brier": 0.4776,
+    "ece": 0.0764,
+    "mae_score": 0.6678
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.618,
+    "nll": 0.8782,
+    "brier": 0.4957,
+    "ece": 0.1155,
+    "mae_score": 0.7058
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9237,
+     "cobertura": 0.996,
+     "tamanho_medio": 4.132,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.924,
+     "cobertura": 1.0,
+     "tamanho_medio": 2.0,
+     "decide_sozinho": 0.0
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.448,
+    "nll": 1.2494,
+    "brier": 0.6639,
+    "ece": 0.1069,
+    "mae_score": 0.7058
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.788,
+    "nll": 0.507,
+    "brier": 0.3275,
+    "ece": 0.126
+   }
+  },
+  "b2w": {
+   "cru": {
+    "n": 500,
+    "acc": 0.658,
+    "nll": 0.7301,
+    "brier": 0.4188,
+    "ece": 0.0545,
+    "mae_score": 0.6413
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.658,
+    "nll": 0.7438,
+    "brier": 0.4195,
+    "ece": 0.0687,
+    "mae_score": 0.6558
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9237,
+     "cobertura": 0.992,
+     "tamanho_medio": 3.56,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.924,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.824,
+     "decide_sozinho": 0.176
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.452,
+    "nll": 1.1378,
+    "brier": 0.6269,
+    "ece": 0.0531,
+    "mae_score": 0.6558
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.864,
+    "nll": 0.3499,
+    "brier": 0.2122,
+    "ece": 0.1078
+   }
+  }
+ },
+ "ft+perm": {
+  "temperaturas": {
+   "choice": 0.8990631776473629,
+   "score": 1.4572180821818477,
+   "noul": 1.2773922498408246
+  },
+  "qhat": {
+   "choice": 0.9188698386190965,
+   "score": 0.9095413201498115,
+   "noul": 0.9282887728187825
+  },
+  "teste": {
+   "cru": {
+    "n": 797,
+    "acc": 0.7089,
+    "nll": 0.6943,
+    "brier": 0.3847,
+    "ece": 0.0358,
+    "mae_score": 0.6359
+   },
+   "calibrado": {
+    "n": 797,
+    "acc": 0.7089,
+    "nll": 0.6956,
+    "brier": 0.3849,
+    "ece": 0.0467,
+    "mae_score": 0.6804
+   },
+   "conformal_90": {
+    "choice": {
+     "qhat": 0.9189,
+     "cobertura": 0.9752,
+     "tamanho_medio": 2.335,
+     "decide_sozinho": 0.2764
+    },
+    "score": {
+     "qhat": 0.9095,
+     "cobertura": 0.988,
+     "tamanho_medio": 3.271,
+     "decide_sozinho": 0.004
+    },
+    "noul": {
+     "qhat": 0.9283,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.781,
+     "decide_sozinho": 0.2188
+    }
+   },
+   "calibrado_choice": {
+    "n": 322,
+    "acc": 0.7484,
+    "nll": 0.6335,
+    "brier": 0.3385,
+    "ece": 0.0525
+   },
+   "calibrado_score": {
+    "n": 251,
+    "acc": 0.5418,
+    "nll": 1.0512,
+    "brier": 0.5707,
+    "ece": 0.0663,
+    "mae_score": 0.6804
+   },
+   "calibrado_noul": {
+    "n": 224,
+    "acc": 0.8393,
+    "nll": 0.3865,
+    "brier": 0.2436,
+    "ece": 0.0573
+   }
+  },
+  "assin2": {
+   "cru": {
+    "n": 500,
+    "acc": 0.656,
+    "nll": 0.8322,
+    "brier": 0.4723,
+    "ece": 0.1141,
+    "mae_score": 0.655
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.656,
+    "nll": 0.877,
+    "brier": 0.4954,
+    "ece": 0.1592,
+    "mae_score": 0.6975
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9095,
+     "cobertura": 0.996,
+     "tamanho_medio": 4.044,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9283,
+     "cobertura": 1.0,
+     "tamanho_medio": 2.0,
+     "decide_sozinho": 0.0
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.504,
+    "nll": 1.2388,
+    "brier": 0.6594,
+    "ece": 0.1507,
+    "mae_score": 0.6975
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.808,
+    "nll": 0.5153,
+    "brier": 0.3314,
+    "ece": 0.1677
+   }
+  },
+  "b2w": {
+   "cru": {
+    "n": 500,
+    "acc": 0.66,
+    "nll": 0.7342,
+    "brier": 0.4197,
+    "ece": 0.0643,
+    "mae_score": 0.6424
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.66,
+    "nll": 0.7438,
+    "brier": 0.4181,
+    "ece": 0.0599,
+    "mae_score": 0.6597
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9095,
+     "cobertura": 0.992,
+     "tamanho_medio": 3.416,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9283,
+     "cobertura": 0.996,
+     "tamanho_medio": 1.852,
+     "decide_sozinho": 0.148
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.452,
+    "nll": 1.137,
+    "brier": 0.6265,
+    "ece": 0.0584,
+    "mae_score": 0.6597
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.868,
+    "nll": 0.3506,
+    "brier": 0.2096,
+    "ece": 0.0826
+   }
+  }
+ },
+ "mc+perm": {
+  "temperaturas": {
+   "choice": 0.8990631776473629,
+   "score": 1.4572180821818477,
+   "noul": 1.2773922498408246
+  },
+  "qhat": {
+   "choice": 0.9177406916019945,
+   "score": 0.9158759326726196,
+   "noul": 0.9257232698086838
+  },
+  "teste": {
+   "cru": {
+    "n": 797,
+    "acc": 0.7064,
+    "nll": 0.6951,
+    "brier": 0.3855,
+    "ece": 0.0274,
+    "mae_score": 0.637
+   },
+   "calibrado": {
+    "n": 797,
+    "acc": 0.7064,
+    "nll": 0.6962,
+    "brier": 0.3855,
+    "ece": 0.0422,
+    "mae_score": 0.681
+   },
+   "conformal_90": {
+    "choice": {
+     "qhat": 0.9177,
+     "cobertura": 0.9752,
+     "tamanho_medio": 2.339,
+     "decide_sozinho": 0.2764
+    },
+    "score": {
+     "qhat": 0.9159,
+     "cobertura": 0.988,
+     "tamanho_medio": 3.359,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9257,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.772,
+     "decide_sozinho": 0.2277
+    }
+   },
+   "calibrado_choice": {
+    "n": 322,
+    "acc": 0.7422,
+    "nll": 0.6332,
+    "brier": 0.3385,
+    "ece": 0.0517
+   },
+   "calibrado_score": {
+    "n": 251,
+    "acc": 0.5498,
+    "nll": 1.0521,
+    "brier": 0.5715,
+    "ece": 0.0668,
+    "mae_score": 0.681
+   },
+   "calibrado_noul": {
+    "n": 224,
+    "acc": 0.8304,
+    "nll": 0.3879,
+    "brier": 0.2449,
+    "ece": 0.047
+   }
+  },
+  "assin2": {
+   "cru": {
+    "n": 500,
+    "acc": 0.652,
+    "nll": 0.8346,
+    "brier": 0.474,
+    "ece": 0.1109,
+    "mae_score": 0.6595
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.652,
+    "nll": 0.8789,
+    "brier": 0.4967,
+    "ece": 0.1558,
+    "mae_score": 0.7004
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9159,
+     "cobertura": 0.996,
+     "tamanho_medio": 4.072,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9257,
+     "cobertura": 1.0,
+     "tamanho_medio": 2.0,
+     "decide_sozinho": 0.0
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.488,
+    "nll": 1.2413,
+    "brier": 0.6609,
+    "ece": 0.1352,
+    "mae_score": 0.7004
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.816,
+    "nll": 0.5165,
+    "brier": 0.3325,
+    "ece": 0.1764
+   }
+  },
+  "b2w": {
+   "cru": {
+    "n": 500,
+    "acc": 0.656,
+    "nll": 0.735,
+    "brier": 0.4198,
+    "ece": 0.0637,
+    "mae_score": 0.6433
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.656,
+    "nll": 0.7447,
+    "brier": 0.4184,
+    "ece": 0.0692,
+    "mae_score": 0.6599
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9159,
+     "cobertura": 0.992,
+     "tamanho_medio": 3.476,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9257,
+     "cobertura": 0.996,
+     "tamanho_medio": 1.852,
+     "decide_sozinho": 0.148
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.448,
+    "nll": 1.1383,
+    "brier": 0.6272,
+    "ece": 0.0642,
+    "mae_score": 0.6599
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.864,
+    "nll": 0.3511,
+    "brier": 0.2096,
+    "ece": 0.0895
+   }
+  }
+ },
+ "swag+perm": {
+  "temperaturas": {
+   "choice": 0.8990631776473629,
+   "score": 1.394626115261553,
+   "noul": 1.2773922498408246
+  },
+  "qhat": {
+   "choice": 0.9131187478986218,
+   "score": 0.9214411829566646,
+   "noul": 0.9261821418023037
+  },
+  "teste": {
+   "cru": {
+    "n": 797,
+    "acc": 0.7026,
+    "nll": 0.6977,
+    "brier": 0.387,
+    "ece": 0.0292,
+    "mae_score": 0.635
+   },
+   "calibrado": {
+    "n": 797,
+    "acc": 0.7026,
+    "nll": 0.6993,
+    "brier": 0.3872,
+    "ece": 0.0448,
+    "mae_score": 0.6756
+   },
+   "conformal_90": {
+    "choice": {
+     "qhat": 0.9131,
+     "cobertura": 0.9783,
+     "tamanho_medio": 2.354,
+     "decide_sozinho": 0.2702
+    },
+    "score": {
+     "qhat": 0.9214,
+     "cobertura": 0.996,
+     "tamanho_medio": 3.41,
+     "decide_sozinho": 0.004
+    },
+    "noul": {
+     "qhat": 0.9262,
+     "cobertura": 1.0,
+     "tamanho_medio": 1.835,
+     "decide_sozinho": 0.1652
+    }
+   },
+   "calibrado_choice": {
+    "n": 322,
+    "acc": 0.7453,
+    "nll": 0.637,
+    "brier": 0.34,
+    "ece": 0.0437
+   },
+   "calibrado_score": {
+    "n": 251,
+    "acc": 0.5458,
+    "nll": 1.0506,
+    "brier": 0.5699,
+    "ece": 0.0716,
+    "mae_score": 0.6756
+   },
+   "calibrado_noul": {
+    "n": 224,
+    "acc": 0.817,
+    "nll": 0.395,
+    "brier": 0.2502,
+    "ece": 0.0718
+   }
+  },
+  "assin2": {
+   "cru": {
+    "n": 500,
+    "acc": 0.632,
+    "nll": 0.8445,
+    "brier": 0.4797,
+    "ece": 0.095,
+    "mae_score": 0.6686
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.632,
+    "nll": 0.8852,
+    "brier": 0.5005,
+    "ece": 0.1357,
+    "mae_score": 0.7066
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9214,
+     "cobertura": 0.996,
+     "tamanho_medio": 4.12,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9262,
+     "cobertura": 1.0,
+     "tamanho_medio": 2.0,
+     "decide_sozinho": 0.0
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.476,
+    "nll": 1.2475,
+    "brier": 0.6625,
+    "ece": 0.1211,
+    "mae_score": 0.7066
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.788,
+    "nll": 0.5228,
+    "brier": 0.3386,
+    "ece": 0.1502
+   }
+  },
+  "b2w": {
+   "cru": {
+    "n": 500,
+    "acc": 0.666,
+    "nll": 0.735,
+    "brier": 0.4197,
+    "ece": 0.0575,
+    "mae_score": 0.6417
+   },
+   "calibrado": {
+    "n": 500,
+    "acc": 0.666,
+    "nll": 0.7479,
+    "brier": 0.4201,
+    "ece": 0.0628,
+    "mae_score": 0.6568
+   },
+   "conformal_90": {
+    "score": {
+     "qhat": 0.9214,
+     "cobertura": 0.992,
+     "tamanho_medio": 3.54,
+     "decide_sozinho": 0.0
+    },
+    "noul": {
+     "qhat": 0.9262,
+     "cobertura": 0.996,
+     "tamanho_medio": 1.884,
+     "decide_sozinho": 0.116
+    }
+   },
+   "calibrado_score": {
+    "n": 250,
+    "acc": 0.464,
+    "nll": 1.1386,
+    "brier": 0.627,
+    "ece": 0.0601,
+    "mae_score": 0.6568
+   },
+   "calibrado_noul": {
+    "n": 250,
+    "acc": 0.868,
+    "nll": 0.3571,
+    "brier": 0.2132,
+    "ece": 0.0897
+   }
+  }
+ }
+}
