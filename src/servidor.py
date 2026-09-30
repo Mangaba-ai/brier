@@ -1,4 +1,6 @@
-"""Servidor compatível com o Jev: POST /v1/systemone e GET /v1/models.
+"""Servidor do Brier: POST /v1/decide (rota própria) e GET /v1/models.
+
+POST /v1/systemone aceita o MESMO corpo, só como rota de compatibilidade para quem migra do Jev.
 
 Mesmo corpo (model, state, questions) e mesma resposta ({"answers": {...}}). Campos a mais em cada
 resposta, que clientes do Jev simplesmente ignoram: `incerteza` (total/aleatória/epistêmica) e,
@@ -23,7 +25,7 @@ from decisor import Decisor  # noqa: E402
 from gerar import valida_pergunta  # noqa: E402
 from treinar import prepara_lora  # noqa: E402
 
-NOME = "brier-1"
+NOME = "brier-2"
 
 
 def carrega_decisor(execucao: str, usar_swa: bool) -> Decisor:
@@ -41,8 +43,9 @@ def carrega_decisor(execucao: str, usar_swa: bool) -> Decisor:
 
 
 def main():
+    mx.set_cache_limit(1024 ** 3)  # sem teto o cache do MLX cresce a cada comprimento novo e leva a swap
     ap = argparse.ArgumentParser()
-    ap.add_argument("--execucao", default="execucoes/v1")
+    ap.add_argument("--execucao", default="execucoes/v2")
     ap.add_argument("--porta", type=int, default=8790)
     ap.add_argument("--swa", action="store_true")
     a = ap.parse_args()
@@ -59,11 +62,11 @@ def main():
 
         def do_GET(self):
             if self.path.rstrip("/") == "/v1/models":
-                return self._json(200, {"models": [{"name": NOME}, {"name": "jev-latest"}]})
+                return self._json(200, {"models": [{"name": NOME}]})
             self._json(404, {"detail": "rota inexistente"})
 
         def do_POST(self):
-            if self.path.rstrip("/") != "/v1/systemone":
+            if self.path.rstrip("/") not in ("/v1/decide", "/v1/systemone"):
                 return self._json(404, {"detail": "rota inexistente"})
             try:
                 corpo = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
@@ -83,7 +86,7 @@ def main():
         def log_message(self, *args):
             pass
 
-    print(f"{NOME} em http://127.0.0.1:{a.porta}/v1/systemone", flush=True)
+    print(f"{NOME} em http://127.0.0.1:{a.porta}/v1/decide (compatível: /v1/systemone)", flush=True)
     # thread única: o MLX amarra o stream à thread que carregou o modelo, e as passadas já são sequenciais
     HTTPServer(("127.0.0.1", a.porta), H).serve_forever()
 

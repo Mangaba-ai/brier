@@ -1,5 +1,6 @@
 """Leitura do sintético, divisão por TAREFA (sem vazamento entre treino/val/teste) e métricas."""
 import json
+import zlib
 import math
 from pathlib import Path
 
@@ -8,11 +9,19 @@ import numpy as np
 from decisor import ordem_canonica
 
 
+def _balde(id_: str) -> int:
+    """0 = teste, 1 = val, resto = treino. Sintético: semente da tarefa (tarefas inteiras ficam juntas);
+    públicos: crc32 do id."""
+    cab = id_.split("-")[0]
+    return int(cab) % 10 if cab.isdigit() else zlib.crc32(id_.encode()) % 10
+
+
 def carrega(caminho="dados/sintetico.jsonl"):
-    exs = [json.loads(l) for l in Path(caminho).read_text().splitlines() if l.strip()]
+    caminhos = caminho if isinstance(caminho, (list, tuple)) else [caminho]
+    exs = [json.loads(l) for c in caminhos for l in Path(c).read_text().splitlines() if l.strip()]
     divisao = {"treino": [], "val": [], "teste": []}
     for e in exs:
-        s = int(e["id"].split("-")[0]) % 10
+        s = _balde(e["id"])
         divisao["teste" if s == 0 else "val" if s == 1 else "treino"].append(e)
     return divisao
 

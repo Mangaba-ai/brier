@@ -115,6 +115,7 @@ def resumo_conformal(val, teste, alfa=0.1):
 
 
 def main():
+    mx.set_cache_limit(1024 ** 3)  # sem teto o cache do MLX cresce a cada comprimento novo e leva a swap
     ap = argparse.ArgumentParser()
     ap.add_argument("--execucao", default="execucoes/v1")
     ap.add_argument("--amostras", type=int, default=6)

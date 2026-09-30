@@ -12,10 +12,11 @@ _cli = httpx.Client(timeout=180)
 
 
 def chat(prompt: str, model: str = "mimo-v2.6-pro", temperature: float = 0.9, max_tokens: int = 6000,
-         system: str | None = None) -> str:
+         system: str | None = None, raciocinio: str | None = "none") -> str:
     msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
-    body = {"model": model, "messages": msgs, "temperature": temperature, "max_tokens": max_tokens,
-            "reasoning_effort": "none"}
+    body = {"model": model, "messages": msgs, "temperature": temperature, "max_tokens": max_tokens}
+    if raciocinio is not None:  # None = deixa o modelo raciocinar (mais lento, rótulo melhor)
+        body["reasoning_effort"] = raciocinio
     for tentativa in range(4):
         try:
             r = _cli.post(f"{_BASE}/chat/completions", json=body, headers={"Authorization": f"Bearer {_KEY}"})

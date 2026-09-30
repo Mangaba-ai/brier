@@ -9,3 +9,10 @@ dados/ext_*.jsonl
 dados/jev_cache.jsonl
 execucoes/jev/pedidos.jsonl
 execucoes/jev/respostas.jsonl
+execucoes/jev/pedidos_tweet.jsonl
+execucoes/jev/respostas_tweet.jsonl
+dados/*.votos.jsonl
+dados/pub_*.parquet
+dados/publicos_treino.jsonl
+dados/ext_tweetsentbr.jsonl
+*.log

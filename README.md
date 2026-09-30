@@ -1,4 +1,4 @@
-# Brier — decisões tipadas e calibradas, local, no formato do Jev
+# Brier — decisões tipadas e calibradas, locais e independentes
 
 **Brier** é um modelo de decisão (não de chat) com a mesma API do
 [TypeSafe Jev](https://docs.typesafe.ai): recebe um `state` e perguntas tipadas (`choice`,
@@ -6,12 +6,16 @@
 [escore de Brier](https://en.wikipedia.org/wiki/Brier_score) (1950), a família de regras de
 pontuação próprias que o treino otimiza: o objetivo é acertar a *probabilidade*, não só a resposta.
 
-Base Qwen3-1.7B + LoRA (MLX, Apple Silicon) · ~0,12 s por pedido · offline · Apache-2.0.
+Brier v2: Qwen3-4B (4 bits) + LoRA em MLX, Apple Silicon · offline · Apache-2.0.
+API própria `POST /v1/decide`; `POST /v1/systemone` aceita o mesmo corpo como rota de
+compatibilidade para quem migra do Jev. O Brier não usa o Jev em nada: pesos próprios, dados
+gerados e rotulados sem o Jev, e nenhuma resposta dele entra no treino.
 
-**Estado atual (v1), medido nos mesmos 750 pedidos contra o Jev:** o Jev acerta mais
-(76,0% × 70,4% no sintético; 78,2% × 65,0% no ASSIN2; empate no B2W). O Brier é mais bem
-calibrado (NLL 0,71 × 1,06 no sintético e 0,73 × 1,86 no B2W; ECE 0,02 × 0,10) e erra com
-menos confiança. Detalhes e limitações em [RESULTADOS.md](RESULTADOS.md).
+**Estado atual (v2), pelo critério fixado antes de medir** (vencer em acurácia e escore de Brier,
+com IC95%, em ≥2 de 3 conjuntos humanos): **ainda não é melhor que o Jev**, mas a distância caiu muito.
+Empata no sintético, empata no B2W (onde ganha no escore de Brier), está à frente no tweetSentBR
+(72,0% × 67,6%, IC encostando no zero) e perde só no ASSIN2 (72,8% × 78,2%; no v1 eram 65,0%).
+Detalhes em [RESULTADOS.md](RESULTADOS.md).
 
 Mesma entrada e saída do TypeSafe Jev: `POST /v1/systemone` com `state` + `questions`
 (`choice`, `score`, `noul`) → `answers` com escolha, probabilidades e confiança. Roda local
@@ -47,11 +51,11 @@ Com T amostras, a incerteza total H(p̄) se divide em **aleatória** (média das
 
 ## Uso
 
-Rodar o modelo treinado (adaptadores em `execucoes/v1`, o Qwen3-1.7B baixa sozinho do HF):
+Rodar o modelo treinado (adaptadores em `execucoes/v2`; o Qwen3-4B de 4 bits baixa sozinho do HF):
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python src/servidor.py --execucao execucoes/v1 --porta 8790
+.venv/bin/python src/servidor.py --execucao execucoes/v2 --porta 8790
 ```
 
 Reproduzir do zero (credenciais em variáveis de ambiente ou num `.env`; ver `src/chaves.py`):
@@ -61,7 +65,7 @@ Reproduzir do zero (credenciais em variáveis de ambiente ou num `.env`; ver `sr
 .venv/bin/python src/externos.py                                    # ASSIN2 e B2W (rótulo humano)
 .venv/bin/python src/treinar.py --passos 1100 --camadas 16 --max-prefixo 768 --saida execucoes/v1
 .venv/bin/python src/avaliar.py --execucao execucoes/v1 --amostras 6   # ablação + calibração
-.venv/bin/python src/servidor.py --execucao execucoes/v1 --porta 8790 # API compatível
+.venv/bin/python src/servidor.py --execucao execucoes/v2 --porta 8790 # API compatível
 TYPESAFE_API_KEY=… .venv/bin/python src/comparar_jev.py              # mesmo teste no Jev
 ```
 
@@ -71,7 +75,7 @@ curl -s localhost:8790/v1/systemone -d '{"model":"jev-latest","state":"internet 
  "amostras":6}'
 ```
 
-`amostras` (opcional, padrão 1) liga as camadas estocásticas: 1 passada ≈ 0,1 s; 6 ≈ 0,4 s.
+`amostras` (opcional, padrão 1) liga as camadas estocásticas: 1 passada ≈ 0,25 s no v2 (0,12 s no v1); 6 amostras ≈ 6× isso.
 
 ## Resultados
 
@@ -80,8 +84,12 @@ Ver [RESULTADOS.md](RESULTADOS.md): ablação das camadas, conformal e comparaç
 ## Conteúdo
 
 - `src/`: código (geração, treino, avaliação, servidor, comparação)
-- `dados/sintetico.jsonl`: os 5.085 exemplos sintéticos do treino (gerados com MiMo)
-- `execucoes/v1/`: adaptadores LoRA (melhor NLL, SWA e variância SWAG), calibração e métricas
+- `dados/sintetico.jsonl`, `dados/sintetico_v2.jsonl`: sintéticos com rótulo de 2 votos e de maioria de 4 votos
+- `dados/sintetico_foco*.jsonl`: 1.659 exemplos focados nas armadilhas perdidas pelo v1
+- Conjuntos públicos (ASSIN, FaQuAD-NLI, HateBR, tweetSentBR) não são redistribuídos: `src/publicos.py` baixa e converte
+- `execucoes/v2/`: adaptadores do v2 (padrão) e calibração
+- `execucoes/v1/`: adaptadores do v1 (1,7B; melhor NLL, SWA e SWAG), calibração e métricas
+- `execucoes/comparacao_v2.json`: comparação pareada v1 × v2 × Jev com o critério de vitória
 
 Os conjuntos ASSIN2 e B2W não são redistribuídos: `src/externos.py` baixa e monta. As respostas
 cruas do Jev também não: `src/comparar_jev.py` refaz com a sua chave.

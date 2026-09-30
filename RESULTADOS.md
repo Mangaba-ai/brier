@@ -1,4 +1,53 @@
-# Resultados — Brier v1 (29/09/2026)
+# Resultados — Brier v2 (30/09/2026)
+
+**Base:** Qwen3-4B-Instruct-2507, 4 bits. LoRA rank 16 nas últimas 20 camadas (18 M parâmetros), treinado no MLX.
+
+**Treino:** 680 passos de 4 exemplos. O melhor checkpoint foi o passo 450; parei no 680 porque a validação piorou no 600 (sobreajuste).
+
+**Dados de treino:** 6.744 sintéticos (5.085 originais + 1.659 focados nas armadilhas em que o v1 perdeu) e 15.128 públicos com rótulo humano (ASSIN v1, FaQuAD-NLI, HateBR), sorteados em 30% dos exemplos.
+
+**Rótulos:** maioria de 4 votos (gerador + 3 rotuladores cegos de modelos diferentes). A cota do provedor acabou no meio, então só 940 exemplos (2.942 perguntas) receberam os 4 votos. O resto ficou com o rótulo de 2 votos do v1.
+
+## Critério de vitória (fixado antes de medir)
+
+O Brier só é declarado **melhor que o Jev** se, em pelo menos 2 dos 3 conjuntos com rótulo humano (ASSIN2, B2W, tweetSentBR), o IC de 95% (bootstrap pareado) for inteiramente favorável ao Brier em **acurácia e em escore de Brier ao mesmo tempo**. Nenhum desses três conjuntos entra no treino.
+
+## Comparação pareada (mesmos pedidos, item a item)
+
+| Conjunto | Acurácia v1 / **v2** / Jev | Escore de Brier ↓ v1 / **v2** / Jev | IC95% Δacc v2−Jev | IC95% Δbrier (Jev−v2, >0 = v2 melhor) |
+|---|---|---|---|---|
+| Sintético (maioria de 4 votos) | 72.5 / **77.5** / 79.5% | 0.380 / **0.304** / 0.287 | -4.8 a +1.2 pts | -0.046 a +0.015 |
+| ASSIN2 | 65.0 / **72.8** / 78.2% | 0.466 / **0.375** / 0.312 | -9.8 a -1.2 pts | -0.106 a -0.021 |
+| B2W | 65.8 / **65.4** / 66.8% | 0.419 / **0.459** / 0.527 | -4.8 a +2.0 pts | +0.034 a +0.106 |
+| tweetSentBR | 68.4 / **72.0** / 67.6% | 0.446 / **0.421** / 0.459 | -0.4 a +9.2 pts | -0.019 a +0.095 |
+
+**Vitórias pelo critério: v1 = 0, v2 = 0. Ainda não é "melhor que o Jev".**
+
+## Leitura
+
+- **O v2 fechou boa parte da distância.** No sintético, o v2 empata estatisticamente com o Jev; o v1 perdia com IC inteiramente negativo.
+- **ASSIN2 é o único conjunto em que o Jev ainda ganha com clareza:** 72,8% × 78,2%, contra 65,0% × 78,2% no v1.
+- **B2W:** empate no acerto, e o v2 **ganha no escore de Brier** (IC favorável). O Jev erra escala com muita confiança.
+- **tweetSentBR:** o v2 está 4,4 pontos à frente (72,0% × 67,6%), mas o IC encosta no zero. Com 250 exemplos, falta poder estatístico para declarar vitória.
+- **Os rótulos por maioria mudaram a régua:** no sintético, o Jev sobe de 76,0% para 79,5%. Parte dos "erros" dele eram rótulos errados do gerador: a maioria de 4 votos discorda da intenção do gerador em 13,6% das perguntas.
+- **A base maior foi o que mais pesou.** O Qwen3-4B sem treino já acertava 72,8% na validação, mais que o v1 treinado (68,2%).
+
+**Conformal (α = 0,1, teste sintético):** com cobertura de 98–100%, o v2 decide sozinho (conjunto de
+1 opção) em 39,7% das perguntas de choice e em 41,7% das de noul. No v1 eram 27,6% e 21,9%. Mais
+casos podem ser automatizados com a mesma garantia de acerto.
+
+## Próximos passos
+
+1. Terminar a rotulagem por maioria nos ~4.100 exemplos restantes, com uma chave separada da de produção (ver incidente abaixo).
+2. Avaliar com n = 1.000 por conjunto: no tweetSentBR, a vantagem atual pode virar vitória estatística só com mais amostra.
+3. Mais exemplos de implicação textual, que é onde o Jev ainda ganha (ASSIN2).
+
+## Incidente: cota do provedor
+
+A rotulagem em massa (40 chamadas paralelas, uma delas com raciocínio) zerou a cota do plano MiMo usado também por serviços em produção. A rotulagem foi interrompida assim que o erro 429 apareceu. Daqui em diante, geração e rotulagem em massa só com chave própria para isso.
+
+---
+# Resultados — Brier v1 (histórico) (29/09/2026)
 
 Base Qwen3-1.7B · LoRA rank 16 nas últimas 16 camadas (9,96 M parâmetros treináveis) ·
 1.100 passos × 4 exemplos, lr 2e-5 · 5.085 exemplos sintéticos (17.705 perguntas) ·

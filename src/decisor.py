@@ -52,7 +52,7 @@ class Bloco:
     ids: list[int] = field(default_factory=list)
 
 
-def monta_bloco(chave: str, q: dict, perm: list[int] | None = None) -> tuple[str, Bloco]:
+def monta_bloco(chave: str, q: dict, perm: list[int] | None = None, pensa: bool = True) -> tuple[str, Bloco]:
     """Texto de uma pergunta. `perm` reordena as opções (a de score nunca: a ordem é o significado)."""
     t, c = q["type"], q["criteria"]
     if t == "choice":
@@ -74,7 +74,8 @@ def monta_bloco(chave: str, q: dict, perm: list[int] | None = None) -> tuple[str
     tipo_pt = {"choice": "escolha uma opção", "score": "escolha um nível da escala",
                "noul": "responda sim ou não"}[t]
     texto = (f"<|im_start|>user\nPERGUNTA ({tipo_pt}): {_txt(q['instructions'])}\n" + "\n".join(linhas) +
-             "\nResponda só com o rótulo.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nResposta: ")
+             "\nResponda só com o rótulo.<|im_end|>\n<|im_start|>assistant\n" +
+             ("<think>\n\n</think>\n\n" if pensa else "") + "Resposta: ")
     return texto, Bloco(chave, t, opcoes, rot)
 
 
@@ -84,6 +85,13 @@ class Codificador:
     def __init__(self, tokenizer):
         self.tok = tokenizer
         self._rot_id = {}
+        # Qwen3 híbrido abre um bloco <think> vazio no modo sem raciocínio; o Qwen3-2507 Instruct não
+        try:
+            amostra = tokenizer.apply_chat_template([{"role": "user", "content": "x"}], tokenize=False,
+                                                    add_generation_prompt=True, enable_thinking=False)
+            self.pensa = "<think>" in amostra
+        except Exception:
+            self.pensa = True
 
     def id_rotulo(self, r: str) -> int:
         if r not in self._rot_id:
@@ -98,7 +106,7 @@ class Codificador:
         n_pre = len(ids)
         segs, blocos, leituras = [(0, n_pre)], [], []
         for k, q in questions.items():
-            txt, b = monta_bloco(k, q, (perms or {}).get(k))
+            txt, b = monta_bloco(k, q, (perms or {}).get(k), self.pensa)
             b.ids = [self.id_rotulo(r) for r in b.rotulos]
             bi = self.tok.encode(txt, add_special_tokens=False)
             ini = len(ids)

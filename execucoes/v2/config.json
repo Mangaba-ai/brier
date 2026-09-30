@@ -1,0 +1,21 @@
+{
+ "modelo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+ "dados": [
+  "dados/sintetico_v2.jsonl",
+  "dados/sintetico_foco_v2.jsonl"
+ ],
+ "publicos": "dados/publicos_treino.jsonl",
+ "peso_publicos": 0.3,
+ "pular_base": true,
+ "saida": "execucoes/v2",
+ "passos": 1500,
+ "acumula": 4,
+ "lr": 2e-05,
+ "rank": 16,
+ "dropout": 0.1,
+ "camadas": 20,
+ "max_prefixo": 768,
+ "avaliar_cada": 150,
+ "swa_inicio": 0.7,
+ "swa_cada": 25
+}

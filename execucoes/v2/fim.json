@@ -1,0 +1,1 @@
+{"melhor_nll_val": 0.6325, "melhor_passo": 450, "parado_em": 680, "motivo": "val piorou no passo 600 (sobreajuste) e o ritmo caiu para ~20 s/passo"}

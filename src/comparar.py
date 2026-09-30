@@ -12,6 +12,7 @@ import json
 import sys
 from pathlib import Path
 
+import mlx.core as mx
 import numpy as np
 from mlx_lm import load
 
@@ -40,6 +41,7 @@ def bootstrap(a, b, fn, n=2000, semente=0):
 
 
 def main():
+    mx.set_cache_limit(1024 ** 3)  # sem teto o cache do MLX cresce a cada comprimento novo e leva a swap
     ap = argparse.ArgumentParser()
     ap.add_argument("--execucao", default="execucoes/v1")
     ap.add_argument("--n", type=int, default=250)

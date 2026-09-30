@@ -54,6 +54,19 @@ ARMADILHAS = [
     "casos genuinamente ambíguos, em que uma pessoa sensata poderia hesitar",
 ]
 
+# Modo --foco (v2): onde o Brier v1 perdeu do Jev na comparação pareada.
+DOMINIOS_FOCO = ["implicação e contradição entre duas frases (o texto A garante o texto B?)",
+                 "paráfrase e similaridade de sentido entre dois textos",
+                 "leitura de regras, políticas e contratos com exceções"] + DOMINIOS
+ARMADILHAS_FOCO = [
+    "implicação textual: B só decorre de A se A garantir B; tema parecido NÃO basta",
+    "negação e leitura literal (a resposta muda por causa de um 'não' ou de uma exceção)",
+    "contagem de itens ou soma simples de valores",
+    "casos genuinamente ambíguos, em que uma pessoa sensata poderia hesitar",
+    "escala ordinal fina: a diferença entre níveis vizinhos precisa ser justificada pelo texto",
+]
+FOCO = False
+
 PROMPT_GERADOR = """Você cria dados de treino para um modelo que toma DECISÕES TIPADAS em português do Brasil.
 O modelo recebe um `state` (o conteúdo a julgar) e perguntas de três tipos:
 - "choice": escolhe 1 opção. criteria = objeto {{"chave_opcao": "descrição do que a opção significa"}} (2 a 8 opções).
@@ -151,7 +164,10 @@ def alvo(q, pretendida, cega):
 
 def gera_tarefa(semente: int):
     rnd = random.Random(semente)
-    dom, fmt, arm = rnd.choice(DOMINIOS), rnd.choice(FORMATOS), rnd.choice(ARMADILHAS)
+    if FOCO:
+        dom, fmt, arm = rnd.choice(DOMINIOS_FOCO), rnd.choice(FORMATOS), rnd.choice(ARMADILHAS_FOCO)
+    else:
+        dom, fmt, arm = rnd.choice(DOMINIOS), rnd.choice(FORMATOS), rnd.choice(ARMADILHAS)
     n_perg, n_states = rnd.randint(2, 5), rnd.randint(5, 8)
     bruto = chat(PROMPT_GERADOR.format(dominio=dom, formato=fmt, armadilha=arm or "nenhuma",
                                        n_perguntas=n_perg, n_states=n_states), temperature=1.0)
@@ -194,7 +210,10 @@ def main():
     ap.add_argument("--saida", default="dados/sintetico.jsonl")
     ap.add_argument("--paralelo", type=int, default=8)
     ap.add_argument("--semente", type=int, default=1000)
+    ap.add_argument("--foco", action="store_true", help="só as armadilhas em que o v1 perdeu do Jev")
     a = ap.parse_args()
+    global FOCO
+    FOCO = a.foco
     out = Path(a.saida)
     feitas = set()
     if out.exists():

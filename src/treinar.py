@@ -84,7 +84,11 @@ def avalia(model, cod, exs, max_prefixo, limite=250):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--modelo", default="Qwen/Qwen3-1.7B")
-    ap.add_argument("--dados", default="dados/sintetico.jsonl")
+    ap.add_argument("--dados", nargs="+", default=["dados/sintetico.jsonl"],
+                    help="sintéticos (o 1º define val/teste de referência)")
+    ap.add_argument("--publicos", default=None, help="jsonl de conjuntos públicos (só treino)")
+    ap.add_argument("--peso-publicos", type=float, default=0.3, help="fração dos exemplos vindos dos públicos")
+    ap.add_argument("--pular-base", action="store_true", help="não avaliar o modelo base antes do treino")
     ap.add_argument("--saida", default="execucoes/v1")
     ap.add_argument("--passos", type=int, default=6000)
     ap.add_argument("--acumula", type=int, default=4)
@@ -97,16 +101,20 @@ def main():
     ap.add_argument("--swa-inicio", type=float, default=0.7, help="fração dos passos em que começa o SWA")
     ap.add_argument("--swa-cada", type=int, default=25)
     a = ap.parse_args()
+    # sem teto, o cache de buffers do MLX cresce com cada comprimento de sequência novo e empurra o
+    # sistema para swap (o v2 travou assim na 1ª tentativa). 2 GB de cache bastam.
+    mx.set_cache_limit(2 * 1024 ** 3)
     saida = Path(a.saida)
     saida.mkdir(parents=True, exist_ok=True)
     (saida / "config.json").write_text(json.dumps(vars(a), indent=1))
 
     div = carrega(a.dados)
+    publicos = carrega(a.publicos)["treino"] if a.publicos else []
     print({k: len(v) for k, v in div.items()}, flush=True)
     model, tok = load(a.modelo)
     cod = Codificador(tok)
-    base_val = avalia(model, cod, div["val"], a.max_prefixo, 200)
-    print("base (zero-shot) val:", base_val, flush=True)
+    if not a.pular_base:
+        print("base (zero-shot) val:", avalia(model, cod, div["val"], a.max_prefixo, 200), flush=True)
     prepara_lora(model, a.rank, a.dropout, a.camadas)
     # máscara própria desliga o kernel de atenção eficiente: sem checkpoint, o backward guardaria
     # uma matriz L×L por camada (≈16 GB com 3k tokens). Recalcular camada a camada cabe em 16 GB.
@@ -124,7 +132,7 @@ def main():
         model.train()
         grads_acc, perda_acc = None, 0.0
         for _ in range(a.acumula):
-            ex = rnd.choice(treino)
+            ex = rnd.choice(publicos) if publicos and rnd.random() < a.peso_publicos else rnd.choice(treino)
             f = perda_exemplo(model, cod, ex, rnd, a.max_prefixo)
             perda, g = nn.value_and_grad(model, f)(model)
             grads_acc = g if grads_acc is None else tree_map(mx.add, grads_acc, g)

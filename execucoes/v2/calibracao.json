@@ -1,0 +1,13 @@
+{
+ "modo": "ft",
+ "temperaturas": {
+  "choice": 1.0,
+  "score": 1.0,
+  "noul": 1.0
+ },
+ "conformal": {
+  "choice": 0.9011472991424975,
+  "score": 0.9583765174370785,
+  "noul": 0.9148603609317028
+ }
+}
