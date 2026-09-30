@@ -1,5 +1,7 @@
 # Brier
 
+[![testes](https://github.com/Mangaba-ai/brier/actions/workflows/testes.yml/badge.svg)](https://github.com/Mangaba-ai/brier/actions/workflows/testes.yml)
+
 **Modelo aberto de decisão tipada e calibrada.** Roda localmente e não depende de nenhum serviço externo.
 
 O Brier recebe um conteúdo (`state`) e uma ou mais perguntas com respostas pré-definidas. Para cada
