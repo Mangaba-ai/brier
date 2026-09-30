@@ -64,7 +64,7 @@ def main():
         sys.exit("defina TYPESAFE_API_KEY (ou JEV_URL + MANGABA_ROUTER_KEY)")
     le = lambda p: [json.loads(l) for l in Path(p).read_text().splitlines() if l.strip()]  # noqa: E731
     conjuntos = {"teste": carrega()["teste"][:a.n], "assin2": le("dados/ext_assin2.jsonl")[:a.n],
-                 "b2w": le("dados/ext_b2w.jsonl")[:a.n]}
+                 "b2w": le("dados/ext_b2w.jsonl")[:a.n], "tweetsentbr": le("dados/ext_tweetsentbr.jsonl")[:a.n]}
     cache = {}
     if CACHE.exists():
         for l in CACHE.read_text().splitlines():

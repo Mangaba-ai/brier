@@ -1,5 +1,9 @@
 # Resultados — Brier v2 (30/09/2026)
 
+> O Brier é um modelo independente. O Jev (TypeSafe AI) aparece neste documento só como referência
+> externa de desempenho: nenhuma resposta dele entra no treino, e as respostas coletadas não são
+> redistribuídas.
+
 **Base:** Qwen3-4B-Instruct-2507, 4 bits. LoRA rank 16 nas últimas 20 camadas (18 M parâmetros), treinado no MLX.
 
 **Treino:** 680 passos de 4 exemplos. O melhor checkpoint foi o passo 450; parei no 680 porque a validação piorou no 600 (sobreajuste).
