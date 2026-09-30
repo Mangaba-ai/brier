@@ -1,0 +1,4 @@
+# Para gerar, rotular e avaliar dados (não é preciso para servir).
+httpx>=0.27
+pandas>=2.0
+pyarrow>=14

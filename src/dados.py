@@ -18,7 +18,7 @@ def _balde(id_: str) -> int:
 
 def carrega(caminho="dados/sintetico.jsonl"):
     caminhos = caminho if isinstance(caminho, (list, tuple)) else [caminho]
-    exs = [json.loads(l) for c in caminhos for l in Path(c).read_text().splitlines() if l.strip()]
+    exs = [json.loads(l) for c in caminhos for l in Path(c).read_text(encoding="utf-8").splitlines() if l.strip()]
     divisao = {"treino": [], "val": [], "teste": []}
     for e in exs:
         s = _balde(e["id"])

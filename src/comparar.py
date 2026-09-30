@@ -48,12 +48,12 @@ def main():
     ap.add_argument("--amostras", type=int, default=1)
     a = ap.parse_args()
     d = Path(a.execucao)
-    cfg = json.loads((d / "config.json").read_text())
+    cfg = json.loads((d / "config.json").read_text(encoding="utf-8"))
     cache = {}
-    for l in Path("dados/jev_cache.jsonl").read_text().splitlines():
+    for l in Path("dados/jev_cache.jsonl").read_text(encoding="utf-8").splitlines():
         x = json.loads(l)
         cache[x["h"]] = x["r"]
-    le = lambda p: [json.loads(l) for l in Path(p).read_text().splitlines() if l.strip()]  # noqa: E731
+    le = lambda p: [json.loads(l) for l in Path(p).read_text(encoding="utf-8").splitlines() if l.strip()]  # noqa: E731
     conjuntos = {"teste": carrega(cfg["dados"])["teste"][:a.n], "assin2": le("dados/ext_assin2.jsonl")[:a.n],
                  "b2w": le("dados/ext_b2w.jsonl")[:a.n]}
     model, tok = load(cfg["modelo"])
@@ -87,7 +87,7 @@ def main():
                                          "nll_local": round(nll(lg), 3), "nll_jev": round(nll(jg), 3)}
         saida[nome] = r
         print(nome, json.dumps({k: v for k, v in r.items() if k != "por_armadilha"}, ensure_ascii=False), flush=True)
-    (d / "comparacao_jev.json").write_text(json.dumps(saida, indent=1, ensure_ascii=False))
+    (d / "comparacao_jev.json").write_text(json.dumps(saida, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

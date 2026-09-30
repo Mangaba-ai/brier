@@ -1,5 +1,7 @@
-mlx-lm>=0.31
-pandas
-pyarrow
-httpx
-numpy
+# Para SERVIR o Brier em qualquer sistema (Windows, Linux, macOS) — motor PyTorch.
+# PyTorch: instale a variante do seu hardware (https://pytorch.org/get-started/locally/).
+torch>=2.3
+transformers>=4.51
+safetensors>=0.4
+huggingface_hub>=0.23
+numpy>=1.24

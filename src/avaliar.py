@@ -33,7 +33,7 @@ from treinar import prepara_lora  # noqa: E402
 
 
 def le_jsonl(p):
-    return [json.loads(l) for l in Path(p).read_text().splitlines() if l.strip()]
+    return [json.loads(l) for l in Path(p).read_text(encoding="utf-8").splitlines() if l.strip()]
 
 
 def coleta(model, cod, exs, T, permutar, dropout, swag, max_prefixo, semente=0):
@@ -127,7 +127,7 @@ def main():
     ap.add_argument("--modo-servidor", default="ft", help="modo cuja calibração vai para calibracao.json")
     a = ap.parse_args()
     ex_dir = Path(a.execucao)
-    cfg = json.loads((ex_dir / "config.json").read_text())
+    cfg = json.loads((ex_dir / "config.json").read_text(encoding="utf-8"))
     div = carrega(cfg["dados"])
     conjuntos = {"val": div["val"][:a.n_val], "teste": div["teste"][:a.n_teste],
                  "assin2": le_jsonl("dados/ext_assin2.jsonl")[:a.n_ext],
@@ -160,7 +160,7 @@ def main():
         r = {"temperaturas": temps, "qhat": qhats}
         if modo == a.modo_servidor:
             (ex_dir / "calibracao.json").write_text(json.dumps({"modo": modo, "temperaturas": temps,
-                                                                 "conformal": qhats}, indent=1))
+                                                                 "conformal": qhats}, indent=1), encoding="utf-8")
         for nome in ("teste", "assin2", "b2w"):
             cru, cal = itens[nome], com_temp(itens[nome], temps)
             r[nome] = {"cru": metricas(cru), "calibrado": metricas(cal),
@@ -173,7 +173,7 @@ def main():
         print(f"\n=== {modo} (T={T}) temps={ {k: round(v, 2) for k, v in temps.items()} }", flush=True)
         for nome in ("teste", "assin2", "b2w"):
             print(f"  {nome:7s} cru {r[nome]['cru']}\n          cal {r[nome]['calibrado']}", flush=True)
-        (ex_dir / "avaliacao.json").write_text(json.dumps(resultados, indent=1, ensure_ascii=False))
+        (ex_dir / "avaliacao.json").write_text(json.dumps(resultados, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

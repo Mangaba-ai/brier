@@ -1,0 +1,32 @@
+name: testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  portavel:
+    name: ${{ matrix.os }} · Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.10", "3.12"]
+    env:
+      PYTHONUTF8: "0"   # testa o padrão de cada sistema (cp1252 no Windows), sem forçar UTF-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: PyTorch (CPU)
+        if: runner.os != 'macOS'
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: PyTorch (macOS)
+        if: runner.os == 'macOS'
+        run: pip install torch
+      - name: Dependências
+        run: pip install -r requirements.txt pytest
+      - name: Testes
+        run: python -m pytest tests -q

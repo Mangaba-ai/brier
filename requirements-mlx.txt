@@ -1,0 +1,2 @@
+# Opcional, só Mac com Apple Silicon: motor MLX (mais rápido) e treino.
+mlx-lm>=0.31 ; sys_platform == "darwin" and platform_machine == "arm64"

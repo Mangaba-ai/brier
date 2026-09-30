@@ -62,19 +62,19 @@ def main():
     a = ap.parse_args()
     if not CHAVE:
         sys.exit("defina TYPESAFE_API_KEY (ou JEV_URL + MANGABA_ROUTER_KEY)")
-    le = lambda p: [json.loads(l) for l in Path(p).read_text().splitlines() if l.strip()]  # noqa: E731
+    le = lambda p: [json.loads(l) for l in Path(p).read_text(encoding="utf-8").splitlines() if l.strip()]  # noqa: E731
     conjuntos = {"teste": carrega()["teste"][:a.n], "assin2": le("dados/ext_assin2.jsonl")[:a.n],
                  "b2w": le("dados/ext_b2w.jsonl")[:a.n], "tweetsentbr": le("dados/ext_tweetsentbr.jsonl")[:a.n]}
     cache = {}
     if CACHE.exists():
-        for l in CACHE.read_text().splitlines():
+        for l in CACHE.read_text(encoding="utf-8").splitlines():
             d = json.loads(l)
             cache[d["h"]] = d["r"]
     h = lambda ex: hashlib.sha1(json.dumps([ex["state"], ex["questions"]], sort_keys=True,  # noqa: E731
                                            ensure_ascii=False).encode()).hexdigest()
     cli = httpx.Client(timeout=60)
     resultado = {}
-    with CACHE.open("a") as f, ThreadPoolExecutor(a.paralelo) as pool:
+    with CACHE.open("a", encoding="utf-8") as f, ThreadPoolExecutor(a.paralelo) as pool:
         for nome, exs in conjuntos.items():
             faltam = [e for e in exs if h(e) not in cache]
             for e, r in zip(faltam, pool.map(lambda e: chama(e, cli), faltam)):
@@ -86,7 +86,7 @@ def main():
                                **{t: metricas([i for i in itens if i["tipo"] == t]) for t in ("choice", "score", "noul")}}
             print(nome, resultado[nome], flush=True)
     Path("execucoes").mkdir(exist_ok=True)
-    Path("execucoes/jev.json").write_text(json.dumps(resultado, indent=1))
+    Path("execucoes/jev.json").write_text(json.dumps(resultado, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":

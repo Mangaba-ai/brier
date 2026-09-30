@@ -37,7 +37,7 @@ def h(ex):
 
 
 def le(p):
-    return [json.loads(l) for l in Path(p).read_text().splitlines() if l.strip()]
+    return [json.loads(l) for l in Path(p).read_text(encoding="utf-8").splitlines() if l.strip()]
 
 
 def acc(it):
@@ -59,7 +59,7 @@ def ic(a, b, fn, n=2000, semente=0):
 
 def conjuntos(n):
     cache = {}
-    for l in Path("dados/jev_cache.jsonl").read_text().splitlines():
+    for l in Path("dados/jev_cache.jsonl").read_text(encoding="utf-8").splitlines():
         x = json.loads(l)
         cache[x["h"]] = x["r"]
     v1_teste = carrega("dados/sintetico.jsonl")["teste"][:n]
@@ -79,7 +79,7 @@ def conjuntos(n):
 
 def roda_local(execucao, dados):
     d = Path(execucao)
-    cfg = json.loads((d / "config.json").read_text())
+    cfg = json.loads((d / "config.json").read_text(encoding="utf-8"))
     model, tok = load(cfg["modelo"])
     prepara_lora(model, cfg["rank"], cfg["dropout"], cfg["camadas"])
     model.load_weights(str(d / "adaptadores.safetensors"), strict=False)
@@ -126,7 +126,7 @@ def main():
         r["melhor_que_jev"] = vitorias >= 2
         relatorio["modelos"][exe] = r
         print(exe, "vitórias em conjuntos humanos:", vitorias, "→ melhor que o Jev" if vitorias >= 2 else "→ ainda não", flush=True)
-    Path("execucoes/comparacao_v2.json").write_text(json.dumps(relatorio, indent=1, ensure_ascii=False))
+    Path("execucoes/comparacao_v2.json").write_text(json.dumps(relatorio, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

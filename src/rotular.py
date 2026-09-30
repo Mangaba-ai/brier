@@ -94,14 +94,14 @@ def main():
     votos_path = Path(a.entrada).with_suffix(".votos.jsonl")
     feitos = {}
     if votos_path.exists():
-        for l in votos_path.read_text().splitlines():
+        for l in votos_path.read_text(encoding="utf-8").splitlines():
             d = json.loads(l)
             feitos[d["id"]] = d["votos_extras"]
-    exs = [json.loads(l) for l in Path(a.entrada).read_text().splitlines() if l.strip()]
+    exs = [json.loads(l) for l in Path(a.entrada).read_text(encoding="utf-8").splitlines() if l.strip()]
     faltam = [] if a.so_agregar else [e for e in exs if e["id"] not in feitos]
     print(f"{len(exs)} exemplos, {len(faltam)} a rotular", flush=True)
     trava = threading.Lock()
-    with ThreadPoolExecutor(a.paralelo) as pool, votos_path.open("a") as f:
+    with ThreadPoolExecutor(a.paralelo) as pool, votos_path.open("a", encoding="utf-8") as f:
         futs = {pool.submit(votos_extras, e): e["id"] for e in faltam}
         for i, fu in enumerate(as_completed(futs), 1):
             v = fu.result()
@@ -112,7 +112,7 @@ def main():
             if i % 200 == 0:
                 print(f"{i}/{len(faltam)}", flush=True)
     n_perg = n_desc = 0
-    with open(a.saida, "w") as f:
+    with open(a.saida, "w", encoding="utf-8") as f:
         for e in exs:
             e["votos_extras"] = feitos.get(e["id"], {})
             n_perg += len(e["rotulos"])

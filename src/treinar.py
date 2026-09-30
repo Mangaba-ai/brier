@@ -106,7 +106,7 @@ def main():
     mx.set_cache_limit(2 * 1024 ** 3)
     saida = Path(a.saida)
     saida.mkdir(parents=True, exist_ok=True)
-    (saida / "config.json").write_text(json.dumps(vars(a), indent=1))
+    (saida / "config.json").write_text(json.dumps(vars(a), indent=1), encoding="utf-8")
 
     div = carrega(a.dados)
     publicos = carrega(a.publicos)["treino"] if a.publicos else []
@@ -170,7 +170,7 @@ def main():
         mx.save_safetensors(str(saida / "swag_var.safetensors"), var)
         model.update(tree_unflatten([(k, mx.array(v)) for k, v in swa_m.items()]))
         print(f"SWA ({swa_n} instantâneos) val: {avalia(model, cod, div['val'], a.max_prefixo)}", flush=True)
-    (saida / "fim.json").write_text(json.dumps({"melhor_nll_val": melhor, "swa_n": swa_n}))
+    (saida / "fim.json").write_text(json.dumps({"melhor_nll_val": melhor, "swa_n": swa_n}), encoding="utf-8")
 
 
 if __name__ == "__main__":

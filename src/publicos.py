@@ -145,13 +145,13 @@ if __name__ == "__main__":
     rnd = random.Random(7)
     treino = assin(rnd) + faquad(rnd) + hatebr(rnd)
     rnd.shuffle(treino)
-    with open("dados/publicos_treino.jsonl", "w") as f:
+    with open("dados/publicos_treino.jsonl", "w", encoding="utf-8") as f:
         for e in treino:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")
     from collections import Counter
     print("treino:", len(treino), dict(Counter(e["fonte"] for e in treino)))
     tw = tweetsentbr()
-    with open("dados/ext_tweetsentbr.jsonl", "w") as f:
+    with open("dados/ext_tweetsentbr.jsonl", "w", encoding="utf-8") as f:
         for e in tw:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")
     print("tweetsentbr (avaliação):", len(tw), dict(Counter(e["rotulos"]["sentimento"]["ouro"] for e in tw)))

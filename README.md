@@ -11,7 +11,8 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 **probabilidade**, não só a resposta.
 
 - **Código e pesos abertos:** Apache-2.0. Base Qwen3-4B com adaptadores LoRA próprios.
-- **Local:** roda em Apple Silicon com MLX, offline, sem custo por chamada. ~0,26 s por pedido.
+- **Local e multiplataforma:** Windows, Linux e macOS, em CPU, GPU NVIDIA ou Apple Silicon. Offline e
+  sem custo por chamada.
 - **Tipado:** a resposta sempre cabe no tipo pedido, por construção.
 - **Calibrado:** quando diz 80%, acerta perto de 80% das vezes. Isso permite decidir o que automatizar
   e o que mandar para uma pessoa.
@@ -97,15 +98,68 @@ esclarecimento.
 
 ## Uso
 
+O Brier roda em **Windows, Linux e macOS** e tem dois motores, que dão as mesmas respostas:
+
+| Sistema | Motor | Hardware |
+|---|---|---|
+| Windows, Linux | PyTorch | GPU NVIDIA (CUDA) ou CPU |
+| macOS com Apple Silicon | MLX (padrão) ou PyTorch (MPS) | GPU integrada |
+| macOS com Intel | PyTorch | CPU |
+
+**Latência medida** (Brier v2, 1 amostra, MacBook Air M5 16 GB, servidor aquecido):
+
+| Motor | Pedido curto (1 frase, 2 perguntas) | Pedidos do teste (mediana · p90) | Escolhas iguais às do MLX |
+|---|---|---|---|
+| MLX | 0,26 s | 1,3 s · 1,7 s | referência |
+| PyTorch na GPU (MPS, fp16) | 0,24 s | 1,5 s · 2,3 s | 98,6% (1 de 69, num quase empate) |
+| PyTorch na CPU (bf16) | — | ~72 s | 100% |
+
+O tempo cresce com o tamanho do `state` e com o número de perguntas.
+
+A CPU funciona, mas é lenta para um modelo de 4B; para uso real, prefira GPU. Em GPU NVIDIA ainda
+não medimos.
+
+O servidor escolhe o motor sozinho; para forçar, use `--motor torch` ou `--motor mlx`.
+
+**Windows (PowerShell)**
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\pip install torch --index-url https://download.pytorch.org/whl/cu124   # GPU NVIDIA; para só CPU use /whl/cpu
+.venv\Scripts\pip install -r requirements.txt
+.venv\Scripts\python src\servidor.py --execucao execucoes\v2 --porta 8790
+```
+
+**Linux**
+
 ```bash
-python -m venv .venv && .venv/bin/pip install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/pip install torch            # CUDA incluso; para só CPU: --index-url https://download.pytorch.org/whl/cpu
+.venv/bin/pip install -r requirements.txt
 .venv/bin/python src/servidor.py --execucao execucoes/v2 --porta 8790
 ```
 
-O Qwen3-4B de 4 bits baixa sozinho do Hugging Face na primeira execução. `"amostras": 6` no corpo liga
-as camadas estocásticas (≈ 6× a latência).
+**macOS (Apple Silicon)**
 
-**Reproduzir o treino do zero** (credenciais de um endpoint OpenAI-compatível para gerar dados, em
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt -r requirements-mlx.txt
+.venv/bin/python src/servidor.py --execucao execucoes/v2 --porta 8790
+```
+
+Na primeira execução, a base (Qwen3-4B em 4 bits, ~2,3 GB) baixa sozinha do Hugging Face. No motor
+PyTorch, ela é convertida em memória. **Memória necessária:** ~9 GB de RAM (ou VRAM) com bf16/fp16.
+Em GPU NVIDIA com 8 GB, use `--dtype float16`.
+
+`"amostras": 6` no corpo liga as camadas estocásticas (≈ 6× a latência). No motor PyTorch, as amostras
+usam a permutação das opções; o MC Dropout existe só no MLX, porque no PyTorch os adaptadores são
+fundidos nos pesos.
+
+**Testes** (qualquer sistema, sem baixar modelo): `python -m pytest tests -q`. O GitHub Actions roda
+os testes em Ubuntu, Windows e macOS a cada push.
+
+**Reproduzir o treino do zero** (o treino usa MLX, então exige Mac com Apple Silicon; instale
+`requirements-mlx.txt` e `requirements-dados.txt`. Credenciais de um endpoint OpenAI-compatível para gerar dados, em
 variáveis de ambiente ou num `.env`; ver `src/chaves.py`):
 
 ```bash

@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from llm import chat, json_de  # noqa: E402
+from nucleo import valida_pergunta  # noqa: E402,F401
 
 DOMINIOS = [
     "atendimento ao cliente de loja online", "suporte técnico de software", "banco e cartão de crédito",
@@ -101,18 +102,6 @@ PERGUNTAS:
 Responda SÓ com JSON {{"chave_da_pergunta": resposta}}, onde resposta é: para choice, a chave da opção;
 para score, o índice do nível (0 = primeiro); para noul, true ou false."""
 
-
-def valida_pergunta(q) -> bool:
-    t, c = q.get("type"), q.get("criteria")
-    if not isinstance(q.get("instructions"), (str, dict, list)):
-        return False
-    if t == "choice":
-        return isinstance(c, dict) and 2 <= len(c) <= 26
-    if t == "score":
-        return isinstance(c, list) and 2 <= len(c) <= 10
-    if t == "noul":
-        return isinstance(c, dict) and set(map(str, c)) >= {"true", "false"}
-    return False
 
 
 def normaliza(q, v):
@@ -217,11 +206,11 @@ def main():
     out = Path(a.saida)
     feitas = set()
     if out.exists():
-        for l in out.read_text().splitlines():
+        for l in out.read_text(encoding="utf-8").splitlines():
             feitas.add(int(json.loads(l)["id"].split("-")[0]))
     trava, n_ex, n_err = threading.Lock(), 0, 0
     sementes = [a.semente + i for i in range(a.tarefas) if a.semente + i not in feitas]
-    with ThreadPoolExecutor(a.paralelo) as ex, out.open("a") as f:
+    with ThreadPoolExecutor(a.paralelo) as ex, out.open("a", encoding="utf-8") as f:
         futs = {ex.submit(gera_tarefa, s): s for s in sementes}
         for i, fu in enumerate(as_completed(futs), 1):
             try:

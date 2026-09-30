@@ -79,7 +79,7 @@ if __name__ == "__main__":
     Path("dados").mkdir(exist_ok=True)
     for nome, fn in (("assin2", assin2), ("b2w", b2w)):
         exs = fn()
-        with open(f"dados/ext_{nome}.jsonl", "w") as f:
+        with open(f"dados/ext_{nome}.jsonl", "w", encoding="utf-8") as f:
             for e in exs:
                 f.write(json.dumps(e, ensure_ascii=False) + "\n")
         print(nome, len(exs))

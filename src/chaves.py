@@ -13,7 +13,7 @@ _ENV = Path(__file__).resolve().parent.parent / ".env"
 def carregar() -> dict:
     vals = {}
     if _ENV.exists():
-        for linha in _ENV.read_text().splitlines():
+        for linha in _ENV.read_text(encoding="utf-8").splitlines():
             if "=" in linha and not linha.lstrip().startswith("#"):
                 k, v = linha.split("=", 1)
                 vals[k.strip()] = v.strip().strip('"').strip("'")
