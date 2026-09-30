@@ -150,8 +150,12 @@ python3 -m venv .venv
 ```
 
 Na primeira execução, a base (Qwen3-4B em 4 bits, ~2,3 GB) baixa sozinha do Hugging Face. No motor
-PyTorch, ela é convertida em memória. **Memória necessária:** ~9 GB de RAM (ou VRAM) com bf16/fp16.
-Em GPU NVIDIA com 8 GB, use `--dtype float16`.
+PyTorch, ela é convertida em memória para 16 bits.
+
+**Memória:** no MLX, ~5 GB de RAM livre (a base fica em 4 bits). No PyTorch, ~9–10 GB de RAM ou VRAM
+(bf16/fp16 ocupam o mesmo espaço), ou seja, GPU NVIDIA com 12 GB ou mais. Para máquinas menores, o
+Brier v1 (Qwen3-1.7B, `--execucao execucoes/v1`) precisa de ~4–5 GB e roda nos dois motores, com
+menos acerto (veja Desempenho).
 
 `"amostras": 6` no corpo liga as camadas estocásticas (≈ 6× a latência). No motor PyTorch, as amostras
 usam a permutação das opções; o MC Dropout existe só no MLX, porque no PyTorch os adaptadores são
