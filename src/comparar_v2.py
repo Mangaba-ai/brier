@@ -96,6 +96,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--execucoes", nargs="+", default=["execucoes/v1", "execucoes/v2"])
     ap.add_argument("--n", type=int, default=250)
+    ap.add_argument("--saida", default="execucoes/comparacao_v2.json")
     a = ap.parse_args()
     dados = conjuntos(a.n)
     jev = {nome: [] for nome in dados}
@@ -126,7 +127,7 @@ def main():
         r["melhor_que_jev"] = vitorias >= 2
         relatorio["modelos"][exe] = r
         print(exe, "vitórias em conjuntos humanos:", vitorias, "→ melhor que o Jev" if vitorias >= 2 else "→ ainda não", flush=True)
-    Path("execucoes/comparacao_v2.json").write_text(json.dumps(relatorio, indent=1, ensure_ascii=False), encoding="utf-8")
+    Path(a.saida).write_text(json.dumps(relatorio, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

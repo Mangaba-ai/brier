@@ -19,23 +19,30 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 - **Calibrado:** quando diz 80%, acerta perto de 80% das vezes. Isso permite decidir o que automatizar
   e o que mandar para uma pessoa.
 
-## Duas versões: escolha pela prioridade
+## Versões
 
-| | **Brier v4** (rápido) | **Brier v2** (mais preciso) |
-|---|---|---|
-| Modelo | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (`convaiinnovations/laya-multilingual`, mmBERT de 322M), sem ajuste para o português | Qwen3-4B + adaptadores LoRA treinados pelo Brier em português |
-| Latência por pedido (Mac M5) | **58–117 ms** | ~1,3 s |
-| Acerto em português (média dos 3 conjuntos humanos) | 50,8% | **70,1%** |
-| Recursos de produção | lotes, janelas para textos longos, abstenção, roteador por idioma, auditoria, mascaramento de dados pessoais, MCP, LangChain, cliente TypeScript, Docker | servidor HTTP, conjunto conformal, incerteza epistêmica |
-| Como rodar | `brier-serve` (pacote `brier/`) | `src/servidor.py --execucao execucoes/v2` |
+| | **Brier v2** (recomendada) | Brier v3 | Brier v4 (rápida) |
+|---|---|---|---|
+| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções e textos longos | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
+| Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% | 50,8% |
+| Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s | **58–117 ms** |
+| Como rodar | `src/servidor.py --execucao execucoes/v2` | `src/servidor.py --execucao execucoes/v3` | `brier-serve` (pacote `brier/`) |
 
-**Recomendação hoje:** use o **v2** quando o acerto importa e o **v4** quando a velocidade e os recursos
-de produção importam mais (triagem de alto volume com abstenção ligada, por exemplo). Sem ajuste fino em
-português, os pesos do Laya acertam bem menos que o v2 nos nossos testes (detalhes em "Desempenho").
+**Use o v2** quando o acerto importa. **Use o v4** quando velocidade e recursos de produção (lotes,
+abstenção, auditoria, MCP) importam mais que alguns pontos de acerto.
+
+### Melhores resultados do Brier até aqui (v2, contra o Jev, mesmos pedidos)
+
+- **tweetSentBR (sentimento):** 72,0% de acerto contra 67,6% do Jev
+  (+4,4 pontos; IC95% de −0,4 a +9,2, ainda sem significância).
+- **B2W (avaliações de produto):** **mais bem calibrado que o Jev, com significância**: escore de
+  Brier 0,459 contra 0,527 (menor é melhor), com acerto empatado.
+- **Sintético (46 domínios, casos difíceis):** empate estatístico com o Jev (77,5% × 79,5%).
+- **Custo e privacidade:** roda offline, sem custo por chamada, com código e pesos abertos.
 
 ```bash
 pip install "brier @ git+https://github.com/Mangaba-ai/brier"
-brier-serve --porta 8790          # Brier v4
+brier-serve --porta 8790          # Brier v4 (rápido)
 ```
 
 ## Para que serve
@@ -251,20 +258,20 @@ passo 680, quando a validação começou a piorar.
 Conjuntos com **rótulo humano que não entram no treino**, 250 pedidos por conjunto. Cada célula:
 acurácia · escore de Brier (menor é melhor).
 
-| Conjunto | Tarefa | Brier v4 (pesos do Laya) | Brier v2 |
-|---|---|---|---|
-| ASSIN2 | implicação textual + similaridade | 45,4% · 0,767 | **72,8%** · 0,375 |
-| B2W | nota de 1 a 5 + recomendação | 50,6% · 0,809 | **65,4%** · 0,459 |
-| tweetSentBR | sentimento | 56,4% · 0,594 | **72,0%** · 0,421 |
-| Sintético (teste) | 46 domínios, casos difíceis | 44,3% · 0,750 | **77,5%** · 0,304 |
+| Conjunto | Tarefa | Brier v2 | Brier v3 | Brier v4 (pesos do Laya) |
+|---|---|---|---|---|
+| ASSIN2 | implicação textual + similaridade | **72,8%** · 0,375 | 71,2% · 0,357 | 45,4% · 0,767 |
+| B2W | nota de 1 a 5 + recomendação | **65,4%** · 0,459 | 61,6% · 0,484 | 50,6% · 0,809 |
+| tweetSentBR | sentimento | **72,0%** · 0,421 | 69,2% · 0,455 | 56,4% · 0,594 |
+| Sintético (teste) | 46 domínios, casos difíceis | **77,5%** · 0,304 | 75,7% · 0,318 | 44,3% · 0,750 |
 
-| Robustez | Brier v4 |
-|---|---|
-| Injeção de instruções (frases nunca vistas) | o ataque funcionou em 44,1% dos casos; acerto 47,6% → 38,6% |
-| Documentos longos (~2.500 tokens, por janelas) | acerto 46,6% → 33,2% |
+| Robustez | Brier v4 | Brier v3 |
+|---|---|---|
+| Injeção de instruções (frases nunca vistas) | o ataque funcionou em 44,1% dos casos; acerto 47,6% → 38,6% | em medição |
+| Documentos longos (~2.500 tokens, por janelas) | acerto 46,6% → 33,2% | em medição |
 
 Usados como estão, sem ajuste com dados em português, os pesos do Laya ficam de 15 a 33 pontos
-abaixo do v2 nesses conjuntos. O v1 (Qwen3-1.7B) tinha 65,0% no ASSIN2 e 72,5% no
+abaixo do v2 nesses conjuntos. O v3, treinado contra injeção, perde de 1,6 a 3,8 pontos de acerto para o v2 nos conjuntos limpos. O v1 (Qwen3-1.7B) tinha 65,0% no ASSIN2 e 72,5% no
 sintético. Números completos e histórico em [RESULTADOS.md](RESULTADOS.md).
 
 ## Comparação com o Jev (referência externa)
@@ -281,15 +288,15 @@ confiança de 95% por bootstrap pareado. O critério de vitória foi fixado **an
 é "melhor que o Jev" se vencer em acurácia **e** escore de Brier, com IC favorável, em pelo menos 2 dos
 3 conjuntos humanos.
 
-| Conjunto | Brier v4 | Brier v2 | Jev | Leitura |
-|---|---|---|---|---|
-| ASSIN2 | 45,4% · 0,767 | 72,8% · 0,375 | 78,2% · 0,312 | Jev melhor que as duas versões |
-| B2W | 50,6% · 0,809 | 65,4% · 0,459 | 66,8% · 0,527 | v2 empata com o Jev no acerto e é mais bem calibrado; v4 abaixo |
-| tweetSentBR | 56,4% · 0,594 | 72,0% · 0,421 | 67,6% · 0,459 | v2 à frente do Jev, sem significância; v4 abaixo |
-| Sintético | 44,3% · 0,750 | 77,5% · 0,304 | 79,5% · 0,287 | v2 empata com o Jev; v4 abaixo |
-| Injeção (taxa de ataque, menor é melhor) | 44,1% | não medido | 21,4% | Jev mais resistente |
-| Documentos longos (acerto limpo → longo) | 46,6% → 33,2% | não medido | 78,2% → 73,0% | Jev melhor |
-| Latência mediana | 58–117 ms (Mac M5) | ~1,3 s (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
+| Conjunto | Brier v2 | Brier v3 | Brier v4 | Jev | Leitura |
+|---|---|---|---|---|---|
+| ASSIN2 | 72,8% · 0,375 | 71,2% · 0,357 | 45,4% · 0,767 | 78,2% · 0,312 | Jev melhor que todas as versões |
+| B2W | 65,4% · 0,459 | 61,6% · 0,484 | 50,6% · 0,809 | 66,8% · 0,527 | v2 empata com o Jev no acerto; v2 e v3 mais bem calibrados que o Jev, com significância; v4 abaixo |
+| tweetSentBR | 72,0% · 0,421 | 69,2% · 0,455 | 56,4% · 0,594 | 67,6% · 0,459 | v2 à frente do Jev, sem significância; v4 abaixo |
+| Sintético | 77,5% · 0,304 | 75,7% · 0,318 | 44,3% · 0,750 | 79,5% · 0,287 | v2 empata com o Jev; v4 abaixo |
+| Injeção (taxa de ataque, menor é melhor) | não medido | em medição | 44,1% | 21,4% | Jev mais resistente |
+| Documentos longos (acerto limpo → longo) | não medido | em medição | 46,6% → 33,2% | 78,2% → 73,0% | Jev melhor |
+| Latência mediana | ~1,3 s (Mac M5) | ~1,3 s (Mac M5) | 58–117 ms (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
 
 **Veredito pelo critério: nenhuma versão do Brier é melhor que o Jev ainda.** Vitórias em conjuntos
 humanos: v4 = 0, v2 = 0. O v2 é o mais próximo (empata no sintético e no B2W, onde é mais
@@ -318,7 +325,8 @@ TYPESAFE_API_KEY=… .venv/bin/python src/comparar_jev.py   # coleta as resposta
 - `src/`: geração, rotulagem, treino, avaliação, servidor do v2 e comparação
 - `execucoes/v2/`: adaptadores do Brier v2 (padrão) e calibração conformal
 - `execucoes/v1/`: adaptadores do v1 (Qwen3-1.7B), com SWA e SWAG
-- `execucoes/comparacao_v2.json`, `execucoes/comparacao_v4.json`: métricas das comparações pareadas
+- `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_v4.json`: métricas das comparações pareadas
+- `execucoes/v3/`: adaptadores do v3 (treinado contra injeção e textos longos)
 - `dados/sintetico*.jsonl`: os dados sintéticos de treino e teste, com votos e alvos
 
 Não redistribuímos dados de terceiros: ASSIN, ASSIN2, B2W, FaQuAD-NLI, HateBR e tweetSentBR são baixados

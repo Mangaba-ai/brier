@@ -1,3 +1,21 @@
+# Resultados — Brier v3 (04/10/2026)
+
+**Modelo:** o v2 (Qwen3-4B + LoRA) retreinado com 25% de exemplos com injeção de instruções e textos
+longos, contexto de treino de 2.048 tokens. Treino interrompido no passo ~270 de 400; checkpoint de
+menor perda média (validação limpa + adversarial) no passo 200. Mesmos 250 pedidos por conjunto.
+
+| Conjunto | Acerto v3 | Acerto Jev | Escore de Brier v3 | Escore de Brier Jev | IC95% Δacerto | IC95% Δescore (Jev−v3, >0 = v3 melhor) |
+|---|---|---|---|---|---|---|
+| Sintético | 75,7% | 79,5% | 0.318 | 0.287 | -6.8 a -0.6 pts | -0.064 a +0.003 |
+| ASSIN2 | 71,2% | 78,2% | 0.357 | 0.312 | -11.4 a -2.8 pts | -0.092 a +0.000 |
+| B2W | 61,6% | 66,8% | 0.484 | 0.527 | -9.0 a -1.4 pts | +0.003 a +0.087 |
+| tweetSentBR | 69,2% | 67,6% | 0.455 | 0.459 | -3.2 a +6.4 pts | -0.049 a +0.056 |
+
+**Vitórias pelo critério: 0.** Nos conjuntos limpos, o v3 perde de 1,6 a 3,8 pontos
+de acerto para o v2 — o custo esperado do treino contra injeção. No B2W, continua mais bem calibrado que
+o Jev, com significância. A robustez (injeção e textos longos) está em medição.
+
+---
 # Resultados — Brier v4 (04/10/2026)
 
 > O Jev (TypeSafe AI) aparece só como referência externa de desempenho.

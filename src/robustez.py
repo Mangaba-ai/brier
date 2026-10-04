@@ -88,6 +88,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--execucoes", nargs="*", default=["execucoes/v2"])
     ap.add_argument("--sem-jev", action="store_true")
+    ap.add_argument("--saida", default="execucoes/robustez.json")
     a = ap.parse_args()
     base = limpos()
     inj = le("dados/adv_teste_injecao.jsonl")
@@ -117,7 +118,7 @@ def main():
             r[nome]["n_pares"] = len(alt)
         relatorio[exe] = r
         print(exe, json.dumps({k: {m: v[m] for m in ("taxa_ataque", "mudou") if m in v} | {"acc": (v["acc_limpo"]["acc"], v["acc_alterado"]["acc"])} for k, v in r.items()}, ensure_ascii=False), flush=True)
-    Path("execucoes/robustez.json").write_text(json.dumps(relatorio, indent=1, ensure_ascii=False), encoding="utf-8")
+    Path(a.saida).write_text(json.dumps(relatorio, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":
