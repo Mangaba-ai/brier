@@ -36,7 +36,7 @@ def motor_padrao() -> str:
     return "torch"
 
 
-def carrega_mlx(execucao: str, usar_swa: bool):
+def carrega_mlx(execucao: str, usar_swa: bool, max_state: int = 4096):
     import mlx.core as mx
     from mlx.utils import tree_unflatten
     from mlx_lm import load
@@ -56,12 +56,14 @@ def carrega_mlx(execucao: str, usar_swa: bool):
     model.eval()
     cal_path = d / "calibracao.json"
     cal = json.loads(cal_path.read_text(encoding="utf-8")) if cal_path.exists() else {}
-    return Decisor(model, tok, cal.get("temperaturas"), conformal=cal.get("conformal"))
+    from nucleo import carrega_sonda
+    return Decisor(model, tok, cal.get("temperaturas"), conformal=cal.get("conformal"), max_state=max_state,
+                   sonda=carrega_sonda(d))
 
 
-def carrega_torch(execucao: str, dispositivo: str | None, dtype: str):
+def carrega_torch(execucao: str, dispositivo: str | None, dtype: str, max_state: int = 4096):
     from motor_torch import DecisorTorch
-    return DecisorTorch(execucao, dispositivo=dispositivo, dtype=dtype)
+    return DecisorTorch(execucao, dispositivo=dispositivo, dtype=dtype, max_state=max_state)
 
 
 def cria_handler(dec):
@@ -117,9 +119,12 @@ def main():
     ap.add_argument("--dispositivo", default=None, help="torch: cuda, mps ou cpu (padrão: o melhor disponível)")
     ap.add_argument("--dtype", default="auto", help="torch: bfloat16, float16 ou float32")
     ap.add_argument("--swa", action="store_true", help="mlx: usa a média SWA em vez do melhor checkpoint")
+    ap.add_argument("--max-state", type=int, default=4096,
+                    help="tokens máximos do state; acima disso corta o meio e avisa em `avisos`")
     a = ap.parse_args()
     motor = motor_padrao() if a.motor == "auto" else a.motor
-    dec = carrega_mlx(a.execucao, a.swa) if motor == "mlx" else carrega_torch(a.execucao, a.dispositivo, a.dtype)
+    dec = (carrega_mlx(a.execucao, a.swa, a.max_state) if motor == "mlx"
+           else carrega_torch(a.execucao, a.dispositivo, a.dtype, a.max_state))
     onde = motor if motor == "mlx" else f"torch/{dec.dispositivo}"
     print(f"{NOME} ({onde}) em http://{a.host}:{a.porta}/v1/decide (compatível: /v1/systemone)", flush=True)
     # thread única: o MLX amarra o stream à thread que carregou o modelo, e as passadas já são sequenciais

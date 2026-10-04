@@ -102,9 +102,21 @@ class Codificador:
             self._rot_id[r] = ids[0]
         return self._rot_id[r]
 
-    def codifica(self, state, questions: dict, perms: dict | None = None, max_prefixo: int = 6000):
-        prefixo = f"<|im_start|>system\n{SISTEMA}<|im_end|>\n<|im_start|>user\nESTADO:\n{_txt(state)}<|im_end|>\n"
-        ids = self.tok.encode(prefixo, add_special_tokens=False)[:max_prefixo]
+    def codifica(self, state, questions: dict, perms: dict | None = None, max_prefixo: int = 4096):
+        """`max_prefixo` limita os tokens do STATE. Se passar, corta o MEIO (mantém início e fim, onde
+        costumam estar o assunto e o pedido) e registra em `self.truncamento` para a resposta avisar."""
+        cab = self.tok.encode(f"<|im_start|>system\n{SISTEMA}<|im_end|>\n<|im_start|>user\nESTADO:\n",
+                              add_special_tokens=False)
+        corpo = self.tok.encode(_txt(state), add_special_tokens=False)
+        rodape = self.tok.encode("<|im_end|>\n", add_special_tokens=False)
+        self.truncamento = None
+        if len(corpo) > max_prefixo:
+            marca = self.tok.encode("\n[…]\n", add_special_tokens=False)
+            resto = max(0, max_prefixo - len(marca))
+            ini = resto * 2 // 3
+            self.truncamento = {"tokens_state": len(corpo), "tokens_usados": max_prefixo}
+            corpo = corpo[:ini] + marca + corpo[len(corpo) - (resto - ini):]
+        ids = cab + corpo + rodape
         n_pre = len(ids)
         segs, blocos, leituras = [(0, n_pre)], [], []
         for k, q in questions.items():
@@ -160,6 +172,36 @@ def perm_aleatoria(q: dict, rnd: random.Random):
     p = list(range(n))
     rnd.shuffle(p)
     return p
+
+
+def carrega_sonda(pasta) -> dict | None:
+    """Sonda linear de injeção (src/sonda.py), se existir na pasta do modelo."""
+    from pathlib import Path
+    arq = Path(pasta) / "sonda_injecao.npz"
+    if not arq.exists():
+        return None
+    z = np.load(arq)
+    return {k: z[k] for k in ("w", "b", "media", "desvio", "limiar")}
+
+
+def aplica_sonda(sonda: dict | None, estados: np.ndarray, chaves: list, resposta: dict) -> None:
+    """estados: [P, D] na ordem de `chaves`. Acrescenta alerta por pergunta e o resumo do pedido."""
+    if sonda is None:
+        return
+    z = ((np.asarray(estados, dtype=np.float32) - sonda["media"]) / sonda["desvio"]) @ sonda["w"] + sonda["b"]
+    p = 1 / (1 + np.exp(-z))
+    for k, pk in zip(chaves, p):
+        resposta["answers"][k]["alerta_injecao"] = round(float(pk), 4)
+    resposta["alerta_injecao"] = {"probabilidade": round(float(p.max()), 4),
+                                  "suspeito": bool(p.max() > float(sonda["limiar"]))}
+
+
+def avisos(cod: "Codificador") -> list[str]:
+    t = getattr(cod, "truncamento", None)
+    if not t:
+        return []
+    return [f"state truncado: {t['tokens_state']} tokens, usados {t['tokens_usados']} "
+            "(início e fim mantidos, meio cortado). Aumente --max-state ou resuma o conteúdo."]
 
 
 def _entropia(d: np.ndarray) -> float:

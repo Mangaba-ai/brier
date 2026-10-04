@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brier"
+version = "4.0.0"
+description = "Decisões tipadas e calibradas (choice, score, noul), locais e abertas. Arquitetura e pesos de partida do Laya."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+dependencies = ["laya>=0.3.26", "torch>=2.3", "transformers>=4.51", "safetensors>=0.4", "huggingface_hub>=0.23"]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2"]
+langchain = ["langchain-core>=0.3"]
+
+[project.scripts]
+brier-serve = "brier.servidor:main"
+brier-mcp = "brier.mcp_servidor:main"
+
+[tool.setuptools]
+packages = ["brier"]

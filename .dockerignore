@@ -1,0 +1,8 @@
+.venv
+.env
+dados
+execucoes
+src
+tests
+clientes
+*.log

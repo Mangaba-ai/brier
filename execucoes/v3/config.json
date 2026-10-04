@@ -1,0 +1,25 @@
+{
+ "modelo": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+ "dados": [
+  "dados/sintetico_v2.jsonl",
+  "dados/sintetico_foco_v2.jsonl"
+ ],
+ "publicos": "dados/publicos_treino.jsonl",
+ "peso_publicos": 0.2,
+ "pular_base": true,
+ "retomar": "execucoes/v2/adaptadores.safetensors",
+ "extra": "dados/adv_treino.jsonl",
+ "peso_extra": 0.25,
+ "val_extra": "dados/adv_val.jsonl",
+ "saida": "execucoes/v3",
+ "passos": 400,
+ "acumula": 4,
+ "lr": 1e-05,
+ "rank": 16,
+ "dropout": 0.1,
+ "camadas": 20,
+ "max_prefixo": 2048,
+ "avaliar_cada": 100,
+ "swa_inicio": 1.1,
+ "swa_cada": 25
+}

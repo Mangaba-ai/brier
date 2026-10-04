@@ -16,3 +16,12 @@ dados/pub_*.parquet
 dados/publicos_treino.jsonl
 dados/ext_tweetsentbr.jsonl
 *.log
+
+# respostas de terceiros e dados derivados de conjuntos de terceiros (regeneráveis)
+dados/llm_cache_*.jsonl
+dados/adv_treino.jsonl
+dados/adv_teste_*.jsonl
+execucoes/tetris/jev_*.json
+execucoes/laya/
+# pesos do v4 (640 MB): publicados no Hugging Face, não no GitHub
+execucoes/v4/

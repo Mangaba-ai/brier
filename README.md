@@ -19,6 +19,14 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 - **Calibrado:** quando diz 80%, acerta perto de 80% das vezes. Isso permite decidir o que automatizar
   e o que mandar para uma pessoa.
 
+> **Em desenvolvimento: Brier v4.** A próxima versão usa a arquitetura e os pesos de partida do
+> [Laya](https://github.com/NandhaKishorM/laya) (Apache-2.0): um encoder mmBERT de 322M com cabeça de
+> decisão, ajustado com os dados do Brier em português, com resposta em ~50 ms. O pacote `brier/`
+> (servidor com lotes, janelas para textos longos, abstenção, roteador por idioma, auditoria,
+> mascaramento de dados pessoais, MCP, LangChain, cliente TypeScript e Docker) já está no repositório.
+> Os pesos do v4 e os resultados serão publicados quando o treino e a avaliação terminarem; até lá,
+> a versão estável é o v2 descrito abaixo.
+
 ## Para que serve
 
 Decisões curtas e repetidas dentro de um software, em que errar com convicção custa caro:

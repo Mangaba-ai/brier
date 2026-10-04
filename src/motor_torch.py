@@ -24,7 +24,8 @@ from huggingface_hub import snapshot_download
 from safetensors.torch import load_file
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
-from nucleo import Codificador, formata, indices_canonicos, mascara_blocos_np, perm_aleatoria
+from nucleo import (Codificador, aplica_sonda, avisos, carrega_sonda, formata, indices_canonicos,
+                    mascara_blocos_np, perm_aleatoria)
 
 ESCALA_LORA = 20.0  # a mesma de treinar.prepara_lora
 
@@ -101,7 +102,8 @@ def _funde_lora(modelo, adaptadores: dict, escala: float = ESCALA_LORA) -> int:
 class DecisorTorch:
     """Mesma interface do Decisor MLX: decide({"state", "questions"}, amostras) → {"answers": …}."""
 
-    def __init__(self, execucao: str | Path, dispositivo: str | None = None, dtype: str = "auto"):
+    def __init__(self, execucao: str | Path, dispositivo: str | None = None, dtype: str = "auto",
+                 max_state: int = 4096):
         d = Path(execucao)
         cfg = json.loads((d / "config.json").read_text(encoding="utf-8"))
         self.dispositivo = dispositivo or dispositivo_padrao()
@@ -119,7 +121,8 @@ class DecisorTorch:
         self.n_lora = _funde_lora(self.modelo, adapt)
         cal_path = d / "calibracao.json"
         cal = json.loads(cal_path.read_text(encoding="utf-8")) if cal_path.exists() else {}
-        self._prepara(self.modelo, tok, tipo, int(cfg.get("max_prefixo", 1024)), cal.get("conformal"))
+        self._prepara(self.modelo, tok, tipo, max_state, cal.get("conformal"))
+        self.sonda = carrega_sonda(d)
 
     def _prepara(self, modelo, tok, tipo, max_prefixo, conformal):
         self.modelo = modelo.to(self.dispositivo).eval()
@@ -130,11 +133,12 @@ class DecisorTorch:
 
     @classmethod
     def de_objetos(cls, modelo, tokenizer, dispositivo: str = "cpu", conformal: dict | None = None,
-                   max_prefixo: int = 1024):
+                   max_prefixo: int = 4096):
         """Monta o decisor a partir de um modelo já carregado (usado nos testes)."""
         obj = cls.__new__(cls)
         obj.dispositivo, obj.n_lora = dispositivo, 0
         obj._prepara(modelo, tokenizer, next(modelo.parameters()).dtype, max_prefixo, conformal)
+        obj.sonda = None
         return obj
 
     @torch.no_grad()
@@ -145,6 +149,7 @@ class DecisorTorch:
         entrada = torch.tensor([ids], device=self.dispositivo)
         saida = self.modelo.model(input_ids=entrada, attention_mask=mask)
         h = saida.last_hidden_state[0, leituras]
+        self._ultimo_estado = h.to(torch.float32).cpu().numpy()  # para a sonda de injeção
         return self.modelo.lm_head(h).to(torch.float32)          # [P, V]
 
     def decide(self, pedido: dict, amostras: int = 1, semente: int = 0) -> dict:
@@ -155,8 +160,14 @@ class DecisorTorch:
             perms = {k: perm_aleatoria(q, rnd) for k, q in questions.items()} if t > 0 else None
             ids, n_pre, segs, leit, blocos = self.cod.codifica(state, questions, perms, self.max_prefixo)
             logits = self._passa(ids, n_pre, segs, leit)
+            if t == 0:
+                estados = (self._ultimo_estado, [b.chave for b in blocos])
             for i, b in enumerate(blocos):
                 sel = logits[i, b.ids]
                 p = torch.softmax(sel, dim=-1)[indices_canonicos(b, questions[b.chave])]
                 acumulado[b.chave].append(p.cpu().numpy())
-        return {"answers": {k: formata(questions[k], np.stack(v), self.conformal) for k, v in acumulado.items()}}
+        r = {"answers": {k: formata(questions[k], np.stack(v), self.conformal) for k, v in acumulado.items()}}
+        aplica_sonda(self.sonda, estados[0], estados[1], r)
+        if avisos(self.cod):
+            r["avisos"] = avisos(self.cod)
+        return r

@@ -28,14 +28,19 @@ from decisor import ordem_canonica  # noqa: E402
 ROTULADORES = [("mimo-v2.5-pro", "none", 800), ("mimo-v2.6-flash", None, 6000)]
 
 
-def votos_extras(ex):
+def votos_extras(ex, rotuladores=None):
     st = ex["state"] if isinstance(ex["state"], str) else json.dumps(ex["state"], ensure_ascii=False, indent=1)
     perg = json.dumps(ex["questions"], ensure_ascii=False, indent=1)
     out = {}
-    for modelo, rac, mt in ROTULADORES:
+    for modelo, rac, mt in (rotuladores or ROTULADORES):
         try:
-            r = json_de(chat(PROMPT_ROTULADOR.format(state=st, perguntas=perg), model=modelo, temperature=0.0,
-                             max_tokens=mt, raciocinio=rac))
+            prompt = PROMPT_ROTULADOR.format(state=st, perguntas=perg)
+            if modelo == "mangaba-titan":  # professor no mangaba.router (não gasta cota do MiMo)
+                from professor import titan
+                bruto = titan(prompt, max_tokens=mt)[0]
+            else:
+                bruto = chat(prompt, model=modelo, temperature=0.0, max_tokens=mt, raciocinio=rac)
+            r = json_de(bruto)
         except Exception:
             r = {}
         out[modelo] = {k: normaliza(q, r.get(k)) if isinstance(r, dict) else None for k, q in ex["questions"].items()}
@@ -70,7 +75,8 @@ def agrega(ex):
     novos, questions = {}, {}
     for k, r in ex["rotulos"].items():
         q = ex["questions"][k]
-        votos = [r["ouro"], r.get("cega")] + [ex.get("votos_extras", {}).get(m, {}).get(k) for m, _, _ in ROTULADORES]
+        extras = ex.get("votos_extras", {})
+        votos = [r["ouro"], r.get("cega")] + [extras[m].get(k) for m in sorted(extras)]
         a = alvo_maioria(q, votos)
         if a is None:
             continue
@@ -90,6 +96,8 @@ def main():
     ap.add_argument("saida")
     ap.add_argument("--paralelo", type=int, default=12)
     ap.add_argument("--so-agregar", action="store_true", help="não chama API; agrega os votos já gravados")
+    ap.add_argument("--professor", action="store_true",
+                    help="voto extra do mangaba-titan (router) só nos exemplos ainda sem votos extras")
     a = ap.parse_args()
     votos_path = Path(a.entrada).with_suffix(".votos.jsonl")
     feitos = {}
@@ -102,7 +110,8 @@ def main():
     print(f"{len(exs)} exemplos, {len(faltam)} a rotular", flush=True)
     trava = threading.Lock()
     with ThreadPoolExecutor(a.paralelo) as pool, votos_path.open("a", encoding="utf-8") as f:
-        futs = {pool.submit(votos_extras, e): e["id"] for e in faltam}
+        rot = [("mangaba-titan", None, 3000)] if a.professor else None
+        futs = {pool.submit(votos_extras, e, rot): e["id"] for e in faltam}
         for i, fu in enumerate(as_completed(futs), 1):
             v = fu.result()
             with trava:

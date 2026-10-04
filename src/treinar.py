@@ -89,6 +89,11 @@ def main():
     ap.add_argument("--publicos", default=None, help="jsonl de conjuntos públicos (só treino)")
     ap.add_argument("--peso-publicos", type=float, default=0.3, help="fração dos exemplos vindos dos públicos")
     ap.add_argument("--pular-base", action="store_true", help="não avaliar o modelo base antes do treino")
+    ap.add_argument("--retomar", default=None, help="adaptadores .safetensors para continuar o treino (ex.: do v2)")
+    ap.add_argument("--extra", default=None, help="jsonl adicional (ex.: adversarial), sorteado com --peso-extra")
+    ap.add_argument("--peso-extra", type=float, default=0.25)
+    ap.add_argument("--val-extra", default=None,
+                    help="jsonl de validação adversarial; o checkpoint passa a ser escolhido pela média das duas NLL")
     ap.add_argument("--saida", default="execucoes/v1")
     ap.add_argument("--passos", type=int, default=6000)
     ap.add_argument("--acumula", type=int, default=4)
@@ -110,6 +115,10 @@ def main():
 
     div = carrega(a.dados)
     publicos = carrega(a.publicos)["treino"] if a.publicos else []
+    val_extra = ([json.loads(l) for l in Path(a.val_extra).read_text(encoding="utf-8").splitlines() if l.strip()]
+                 if a.val_extra else [])
+    # o extra já foi montado só a partir de exemplos de TREINO: usa todo o arquivo
+    extra = [json.loads(l) for l in Path(a.extra).read_text(encoding="utf-8").splitlines() if l.strip()] if a.extra else []
     print({k: len(v) for k, v in div.items()}, flush=True)
     model, tok = load(a.modelo)
     cod = Codificador(tok)
@@ -119,6 +128,9 @@ def main():
     # máscara própria desliga o kernel de atenção eficiente: sem checkpoint, o backward guardaria
     # uma matriz L×L por camada (≈16 GB com 3k tokens). Recalcular camada a camada cabe em 16 GB.
     grad_checkpoint(model.model.layers[0])
+    if a.retomar:
+        model.load_weights(a.retomar, strict=False)
+        print(f"retomando de {a.retomar}", flush=True)
 
     aquece = min(100, max(1, a.passos // 10))
     sched = optim.join_schedules([optim.linear_schedule(1e-7, a.lr, aquece),
@@ -132,7 +144,13 @@ def main():
         model.train()
         grads_acc, perda_acc = None, 0.0
         for _ in range(a.acumula):
-            ex = rnd.choice(publicos) if publicos and rnd.random() < a.peso_publicos else rnd.choice(treino)
+            sorteio = rnd.random()
+            if extra and sorteio < a.peso_extra:
+                ex = rnd.choice(extra)
+            elif publicos and sorteio < a.peso_extra * bool(extra) + a.peso_publicos:
+                ex = rnd.choice(publicos)
+            else:
+                ex = rnd.choice(treino)
             f = perda_exemplo(model, cod, ex, rnd, a.max_prefixo)
             perda, g = nn.value_and_grad(model, f)(model)
             grads_acc = g if grads_acc is None else tree_map(mx.add, grads_acc, g)
@@ -159,8 +177,13 @@ def main():
         if passo % a.avaliar_cada == 0 or passo == a.passos:
             m = avalia(model, cod, div["val"], a.max_prefixo)
             print(f"val passo {passo}: {m}", flush=True)
-            if m["nll"] < melhor:
-                melhor = m["nll"]
+            criterio = m["nll"]
+            if val_extra:
+                mx_ = avalia(model, cod, val_extra, a.max_prefixo, len(val_extra))
+                print(f"  val adversarial passo {passo}: {mx_}", flush=True)
+                criterio = (m["nll"] + mx_["nll"]) / 2
+            if criterio < melhor:
+                melhor = criterio
                 mx.save_safetensors(str(saida / "adaptadores.safetensors"), dict(tree_flatten(model.trainable_parameters())))
                 print("  ↳ melhor até agora, salvo", flush=True)
 

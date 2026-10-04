@@ -31,7 +31,7 @@ import mlx.core as mx
 import numpy as np
 
 # tudo que não depende do MLX vem do núcleo portátil (o motor PyTorch usa o mesmo código)
-from nucleo import (LETRAS, SISTEMA, Bloco, Codificador, _txt, confianca, formata,  # noqa: F401
+from nucleo import (LETRAS, SISTEMA, Bloco, Codificador, _txt, aplica_sonda, avisos, confianca, formata,  # noqa: F401
                     indices_canonicos, mascara_blocos_np, monta_bloco, ordem_canonica,
                     perm_aleatoria, valida_pergunta)
 
@@ -42,14 +42,26 @@ def mascara_blocos(L: int, n_pre: int, segs) -> mx.array:
     return mx.where(ok, 0.0, -math.inf).astype(mx.float32)
 
 
-def passa(model, ids_lote: mx.array, mask: mx.array, leituras: list[int]) -> mx.array:
-    """Uma passada com máscara própria; devolve logits só nas posições de leitura. [B, P, V]"""
+def estado_leitura(model, ids_lote: mx.array, mask: mx.array, leituras: list[int]) -> mx.array:
+    """Estado oculto final (após a norma) nas posições de leitura. [B, P, D] — usado pela sonda."""
     inner = model.model
     h = inner.embed_tokens(ids_lote)
     m = mask.astype(h.dtype)
     for layer in inner.layers:
         h = layer(h, m, None)
-    h = inner.norm(h[:, mx.array(leituras), :])
+    return inner.norm(h[:, mx.array(leituras), :])
+
+
+def para_logits(model, h: mx.array) -> mx.array:
+    if model.args.tie_word_embeddings:
+        return model.model.embed_tokens.as_linear(h)
+    return model.lm_head(h)
+
+
+def passa(model, ids_lote: mx.array, mask: mx.array, leituras: list[int]) -> mx.array:
+    """Uma passada com máscara própria; devolve logits só nas posições de leitura. [B, P, V]"""
+    h = estado_leitura(model, ids_lote, mask, leituras)
+    inner = model.model
     if model.args.tie_word_embeddings:
         return inner.embed_tokens.as_linear(h)
     return model.lm_head(h)
@@ -76,11 +88,13 @@ class Decisor:
     """Inferência no formato Jev, com amostragem estocástica opcional."""
 
     def __init__(self, model, tokenizer, temperaturas: dict | None = None, swag: dict | None = None,
-                 conformal: dict | None = None):
+                 conformal: dict | None = None, max_state: int = 4096, sonda: dict | None = None):
         self.model, self.cod = model, Codificador(tokenizer)
         self.temp = temperaturas or {"choice": 1.0, "score": 1.0, "noul": 1.0}
         self.swag = swag            # {"media": {...}, "var": {...}} dos pesos LoRA, se houver
         self.conformal = conformal  # {"choice": qhat, "score": qhat, "noul": qhat}
+        self.max_state = max_state
+        self.sonda = sonda          # sonda linear de injeção (nucleo.carrega_sonda), opcional
 
     def _amostras(self, state, questions, T: int, estocastico: bool, semente: int):
         """Devolve {chave: [T, K] log-probs canônicas}. Com T>1 e permutação, cada amostra é uma
@@ -89,9 +103,12 @@ class Decisor:
         acumulado = {k: [] for k in questions}
         for t in range(T):
             perms = {k: perm_aleatoria(q, rnd) for k, q in questions.items()} if (estocastico and t > 0) else None
-            ids, n_pre, segs, leit, blocos = self.cod.codifica(state, questions, perms)
+            ids, n_pre, segs, leit, blocos = self.cod.codifica(state, questions, perms, self.max_state)
             mask = mascara_blocos(len(ids), n_pre, segs)
-            logits = passa(self.model, mx.array([ids]), mask, leit)[0]
+            h = estado_leitura(self.model, mx.array([ids]), mask, leit)
+            logits = para_logits(self.model, h)[0]
+            if t == 0:
+                self._estados = (np.array(h[0].astype(mx.float32)), [b.chave for b in blocos])
             for i, b in enumerate(blocos):
                 q = questions[b.chave]
                 lp = para_canonica(dist_restrita(logits[i], b, self.temp[b.tipo]), b, q)
@@ -108,7 +125,11 @@ class Decisor:
         finally:
             self.model.eval()
         mx.eval(lps)
-        return {"answers": {k: self._formata(questions[k], lps[k]) for k in questions}}
+        r = {"answers": {k: self._formata(questions[k], lps[k]) for k in questions}}
+        aplica_sonda(self.sonda, self._estados[0], self._estados[1], r)
+        if avisos(self.cod):
+            r["avisos"] = avisos(self.cod)
+        return r
 
     def _formata(self, q: dict, lp: mx.array) -> dict:
         return formata(q, np.array(mx.exp(lp)), self.conformal)
