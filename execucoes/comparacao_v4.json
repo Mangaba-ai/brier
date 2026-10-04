@@ -1,0 +1,168 @@
+{
+ "modelo": "convaiinnovations/laya-multilingual",
+ "conjuntos": {
+  "sintetico": {
+   "modelo": {
+    "n": 779,
+    "acc": 0.4429,
+    "nll": 1.6205,
+    "brier": 0.7495,
+    "ece": 0.2291,
+    "mae_score": 1.0333
+   },
+   "jev": {
+    "n": 779,
+    "acc": 0.7946,
+    "nll": 0.8953,
+    "brier": 0.2866,
+    "ece": 0.0719,
+    "mae_score": 0.4159
+   },
+   "ic95_acc": [
+    -0.3941,
+    -0.3081
+   ],
+   "ic95_brier": [
+    -0.514,
+    -0.4061
+   ],
+   "vence": false,
+   "latencia_p50_ms": 117.0
+  },
+  "assin2": {
+   "modelo": {
+    "n": 500,
+    "acc": 0.454,
+    "nll": 1.7546,
+    "brier": 0.7675,
+    "ece": 0.3149,
+    "mae_score": 1.4753
+   },
+   "jev": {
+    "n": 500,
+    "acc": 0.782,
+    "nll": 0.7037,
+    "brier": 0.3119,
+    "ece": 0.0567,
+    "mae_score": 0.434
+   },
+   "ic95_acc": [
+    -0.374,
+    -0.284
+   ],
+   "ic95_brier": [
+    -0.515,
+    -0.3934
+   ],
+   "vence": false,
+   "latencia_p50_ms": 58.5
+  },
+  "b2w": {
+   "modelo": {
+    "n": 500,
+    "acc": 0.506,
+    "nll": 2.3302,
+    "brier": 0.8086,
+    "ece": 0.3211,
+    "mae_score": 1.4337
+   },
+   "jev": {
+    "n": 500,
+    "acc": 0.668,
+    "nll": 1.8607,
+    "brier": 0.5274,
+    "ece": 0.1779,
+    "mae_score": 0.6184
+   },
+   "ic95_acc": [
+    -0.21,
+    -0.116
+   ],
+   "ic95_brier": [
+    -0.3481,
+    -0.2135
+   ],
+   "vence": false,
+   "latencia_p50_ms": 84.3
+  },
+  "tweetsentbr": {
+   "modelo": {
+    "n": 250,
+    "acc": 0.564,
+    "nll": 1.0271,
+    "brier": 0.5941,
+    "ece": 0.1217
+   },
+   "jev": {
+    "n": 250,
+    "acc": 0.676,
+    "nll": 1.2567,
+    "brier": 0.4594,
+    "ece": 0.1641
+   },
+   "ic95_acc": [
+    -0.18,
+    -0.048
+   ],
+   "ic95_brier": [
+    -0.2113,
+    -0.0585
+   ],
+   "vence": false,
+   "latencia_p50_ms": 71.1
+  }
+ },
+ "vitorias_humanas": 0,
+ "injecao": {
+  "acc_limpo": {
+   "n": 2029,
+   "acc": 0.4761,
+   "nll": 1.7553,
+   "brier": 0.7493,
+   "ece": 0.2534,
+   "mae_score": 1.3183
+  },
+  "acc_alterado": {
+   "n": 2029,
+   "acc": 0.3859,
+   "nll": 2.2737,
+   "brier": 0.899,
+   "ece": 0.3508,
+   "mae_score": 1.5393
+  },
+  "taxa_ataque": 0.441,
+  "mudou": 0.351,
+  "taxa_ataque_por_familia": {
+   "G": 0.4235,
+   "H": 0.4706,
+   "I": 0.4979,
+   "J": 0.3797
+  },
+  "taxa_ataque_por_fonte": {
+   "assin2": 0.452,
+   "b2w": 0.264,
+   "sintetico": 0.48,
+   "tweetsentbr": 0.568
+  },
+  "latencia_p50_ms": 124.1
+ },
+ "longo": {
+  "acc_limpo": {
+   "n": 1089,
+   "acc": 0.4656,
+   "nll": 1.8684,
+   "brier": 0.7721,
+   "ece": 0.2813,
+   "mae_score": 1.3136
+  },
+  "acc_alterado": {
+   "n": 1089,
+   "acc": 0.3324,
+   "nll": 4.14,
+   "brier": 1.1672,
+   "ece": 0.5604,
+   "mae_score": 1.4688
+  },
+  "latencia_p50_ms": 3532.1
+ }
+}

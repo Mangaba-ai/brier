@@ -1,3 +1,28 @@
+# Resultados — Brier v4 (04/10/2026)
+
+> O Jev (TypeSafe AI) aparece só como referência externa de desempenho.
+
+**Modelo:** arquitetura e pesos do Laya como estão (`convaiinnovations/laya-multilingual`, mmBERT 322M,
+Apache-2.0), sem ajuste fino. Mesmos 250 pedidos por conjunto usados no v2, mesmo critério.
+
+| Conjunto | Acerto v4 | Acerto Jev | Escore de Brier v4 | Escore de Brier Jev | IC95% Δacerto (v4−Jev) | Latência mediana |
+|---|---|---|---|---|---|---|
+| Sintético | 44,3% | 79,5% | 0.750 | 0.287 | -39.4 a -30.8 pts | 117 ms |
+| ASSIN2 | 45,4% | 78,2% | 0.767 | 0.312 | -37.4 a -28.4 pts | 58 ms |
+| B2W | 50,6% | 66,8% | 0.809 | 0.527 | -21.0 a -11.6 pts | 84 ms |
+| tweetSentBR | 56,4% | 67,6% | 0.594 | 0.459 | -18.0 a -4.8 pts | 71 ms |
+
+**Vitórias pelo critério: 0.**
+
+- **Injeção** (famílias de frase nunca vistas): o ataque funcionou em 44,1% dos casos (Jev: 21,4%); acerto 47,6% → 38,6%.
+- **Documentos longos** (~2.500 tokens, lidos por janelas): acerto 46,6% → 33,2% (Jev: 78,2% → 73,0%); mediana de 3.5 s.
+
+**Leitura:** sem ajuste com dados em português, os pesos do Laya ficam de 15 a 33 pontos abaixo do
+Brier v2 em acerto, e atrás do Jev em todos os conjuntos, na injeção e nos documentos longos. A vantagem
+é a velocidade: 58–117 ms por pedido no Mac M5, contra ~1,3 s do v2. O v2 segue sendo a versão mais
+precisa do Brier.
+
+---
 # Resultados — Brier v2 (30/09/2026)
 
 > O Brier é um modelo independente. O Jev (TypeSafe AI) aparece neste documento só como referência
