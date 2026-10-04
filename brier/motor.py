@@ -1,5 +1,5 @@
-"""Motor do Brier v4: arquitetura e pesos de partida do Laya (encoder mmBERT + cabeça de decisão),
-ajustados com os dados do Brier em português.
+"""Motor do Brier v4: arquitetura e pesos do Laya (encoder mmBERT de 322M + cabeça de decisão),
+usados como estão, sem ajuste fino. Pesos: convaiinnovations/laya-multilingual (Apache-2.0).
 
 Recursos:
   - uma passada para todas as perguntas; ~50 ms por pedido em GPU de Apple Silicon;
@@ -24,7 +24,7 @@ from typing import Callable, Optional
 
 from .pii import mascarar
 
-MODELO_PADRAO = os.environ.get("BRIER_MODELO", "mangaba-ai/brier-v4")
+MODELO_PADRAO = os.environ.get("BRIER_MODELO", "convaiinnovations/laya-multilingual")
 MODELO_OUTROS_IDIOMAS = "convaiinnovations/laya-multilingual"
 
 

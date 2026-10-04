@@ -5,6 +5,6 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
 COPY pyproject.toml README.md ./
 COPY brier ./brier
 RUN pip install --no-cache-dir .
-ENV BRIER_MODELO=mangaba-ai/brier-v4
+ENV BRIER_MODELO=convaiinnovations/laya-multilingual
 EXPOSE 8790
 CMD ["brier-serve", "--host", "0.0.0.0", "--porta", "8790"]

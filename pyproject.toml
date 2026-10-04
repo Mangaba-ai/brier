@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "brier"
 version = "4.0.0"
-description = "Decisões tipadas e calibradas (choice, score, noul), locais e abertas. Arquitetura e pesos de partida do Laya."
+description = "Decisões tipadas e calibradas (choice, score, noul), locais e abertas. Arquitetura e pesos do Laya."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"

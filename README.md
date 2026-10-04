@@ -19,13 +19,17 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 - **Calibrado:** quando diz 80%, acerta perto de 80% das vezes. Isso permite decidir o que automatizar
   e o que mandar para uma pessoa.
 
-> **Em desenvolvimento: Brier v4.** A próxima versão usa a arquitetura e os pesos de partida do
-> [Laya](https://github.com/NandhaKishorM/laya) (Apache-2.0): um encoder mmBERT de 322M com cabeça de
-> decisão, ajustado com os dados do Brier em português, com resposta em ~50 ms. O pacote `brier/`
-> (servidor com lotes, janelas para textos longos, abstenção, roteador por idioma, auditoria,
-> mascaramento de dados pessoais, MCP, LangChain, cliente TypeScript e Docker) já está no repositório.
-> Os pesos do v4 e os resultados serão publicados quando o treino e a avaliação terminarem; até lá,
-> a versão estável é o v2 descrito abaixo.
+> **Brier v4.** O motor padrão do pacote `brier/` usa a arquitetura e os pesos do
+> [Laya](https://github.com/NandhaKishorM/laya) como estão (`convaiinnovations/laya-multilingual`,
+> encoder mmBERT de 322M, Apache-2.0), com resposta em ~50 ms. Em volta dele, o Brier acrescenta:
+> servidor HTTP com lotes, janelas para textos longos, abstenção por `min_confidence`, roteador por
+> idioma, auditoria, mascaramento de dados pessoais, MCP, LangChain, cliente TypeScript e Docker.
+> Os modelos próprios treinados pelo Brier (v1 a v3, abaixo) continuam no repositório.
+>
+> ```bash
+> pip install "brier @ git+https://github.com/Mangaba-ai/brier"
+> brier-serve --porta 8790
+> ```
 
 ## Para que serve
 
