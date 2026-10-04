@@ -23,7 +23,7 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 
 | | **Brier v2** (recomendada) | Brier v3 | Brier v4 (rápida) |
 |---|---|---|---|
-| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções e textos longos | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
+| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção; **o mais resistente a injeção, à frente do Jev** | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
 | Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% | 50,8% |
 | Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s | **58–117 ms** |
 | Como rodar | `src/servidor.py --execucao execucoes/v2` | `src/servidor.py --execucao execucoes/v3` | `brier-serve` (pacote `brier/`) |
@@ -31,13 +31,16 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 **Use o v2** quando o acerto importa. **Use o v4** quando velocidade e recursos de produção (lotes,
 abstenção, auditoria, MCP) importam mais que alguns pontos de acerto.
 
-### Melhores resultados do Brier até aqui (v2, contra o Jev, mesmos pedidos)
+### Melhores resultados do Brier até aqui (contra o Jev, mesmos pedidos)
 
 - **tweetSentBR (sentimento):** 72,0% de acerto contra 67,6% do Jev
   (+4,4 pontos; IC95% de −0,4 a +9,2, ainda sem significância).
 - **B2W (avaliações de produto):** **mais bem calibrado que o Jev, com significância**: escore de
   Brier 0,459 contra 0,527 (menor é melhor), com acerto empatado.
 - **Sintético (46 domínios, casos difíceis):** empate estatístico com o Jev (77,5% × 79,5%).
+- **Injeção de instruções (Brier v3):** **mais resistente que o Jev, com significância**: a instrução
+  maliciosa mudou a resposta para o que pedia em 16,7% dos casos, contra 21,4% do Jev (diferença de
+  −4,7 pontos; IC95% aproximado de −8,1 a −1,3), em 1000 casos com frases nunca vistas no treino.
 - **Custo e privacidade:** roda offline, sem custo por chamada, com código e pesos abertos.
 
 ```bash
@@ -267,8 +270,8 @@ acurácia · escore de Brier (menor é melhor).
 
 | Robustez | Brier v4 | Brier v3 |
 |---|---|---|
-| Injeção de instruções (frases nunca vistas) | o ataque funcionou em 44,1% dos casos; acerto 47,6% → 38,6% | em medição |
-| Documentos longos (~2.500 tokens, por janelas) | acerto 46,6% → 33,2% | em medição |
+| Injeção de instruções (frases nunca vistas) | o ataque funcionou em 44,1% dos casos; acerto 47,6% → 38,6% | o ataque funcionou em 16,7% dos casos; acerto 70,3% → 67,3% |
+| Documentos longos (~2.500 tokens, por janelas) | acerto 46,6% → 33,2% | acerto 73,5% → 59,1% |
 
 Usados como estão, sem ajuste com dados em português, os pesos do Laya ficam de 15 a 33 pontos
 abaixo do v2 nesses conjuntos. O v3, treinado contra injeção, perde de 1,6 a 3,8 pontos de acerto para o v2 nos conjuntos limpos. O v1 (Qwen3-1.7B) tinha 65,0% no ASSIN2 e 72,5% no
@@ -294,8 +297,8 @@ confiança de 95% por bootstrap pareado. O critério de vitória foi fixado **an
 | B2W | 65,4% · 0,459 | 61,6% · 0,484 | 50,6% · 0,809 | 66,8% · 0,527 | v2 empata com o Jev no acerto; v2 e v3 mais bem calibrados que o Jev, com significância; v4 abaixo |
 | tweetSentBR | 72,0% · 0,421 | 69,2% · 0,455 | 56,4% · 0,594 | 67,6% · 0,459 | v2 à frente do Jev, sem significância; v4 abaixo |
 | Sintético | 77,5% · 0,304 | 75,7% · 0,318 | 44,3% · 0,750 | 79,5% · 0,287 | v2 empata com o Jev; v4 abaixo |
-| Injeção (taxa de ataque, menor é melhor) | não medido | em medição | 44,1% | 21,4% | Jev mais resistente |
-| Documentos longos (acerto limpo → longo) | não medido | em medição | 46,6% → 33,2% | 78,2% → 73,0% | Jev melhor |
+| Injeção (taxa de ataque, menor é melhor) | não medido | **16,7%** | 44,1% | 21,4% | **v3 mais resistente que o Jev, com significância** |
+| Documentos longos (acerto limpo → longo) | não medido | 73,5% → 59,1% | 46,6% → 33,2% | 78,2% → 73,0% | Jev melhor |
 | Latência mediana | ~1,3 s (Mac M5) | ~1,3 s (Mac M5) | 58–117 ms (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
 
 **Veredito pelo critério: nenhuma versão do Brier é melhor que o Jev ainda.** Vitórias em conjuntos

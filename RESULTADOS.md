@@ -13,7 +13,21 @@ menor perda média (validação limpa + adversarial) no passo 200. Mesmos 250 pe
 
 **Vitórias pelo critério: 0.** Nos conjuntos limpos, o v3 perde de 1,6 a 3,8 pontos
 de acerto para o v2 — o custo esperado do treino contra injeção. No B2W, continua mais bem calibrado que
-o Jev, com significância. A robustez (injeção e textos longos) está em medição.
+o Jev, com significância.
+
+**Robustez** (1000 casos de injeção com frases nunca vistas no treino; 450 documentos longos):
+
+| | Brier v3 | Jev |
+|---|---|---|
+| Injeção: resposta virou o que o ataque pedia | **16,7%** | 21,4% |
+| Injeção: decisão mudou | **15,8%** | 17,5% |
+| Injeção: acerto limpo → com injeção | 70,3% → 67,3% | 74,6% → 69,4% |
+| Documentos longos: acerto limpo → longo | 73,5% → 59,1% | **78,2% → 73,0%** |
+
+Diferença na taxa de ataque: −4,7 pontos, IC95% aproximado (duas proporções, n = 1000) de −8,1 a −1,3:
+**o v3 é mais resistente a injeção que o Jev, com significância.** Por fonte, a taxa de ataque do v3 é
+38,4% no tweetSentBR (Jev: 51,2%), 8,8% no B2W (Jev: 14,4%) e 14,0% no sintético (Jev: 16,0%).
+Em documentos longos, o Jev segue bem melhor.
 
 ---
 # Resultados — Brier v4 (04/10/2026)
