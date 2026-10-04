@@ -21,15 +21,18 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 
 ## Versões
 
-| | **Brier v2** (recomendada) | Brier v3 | Brier v4 (rápida) |
+| | Brier v2 (mais preciso) | **Brier v3** (recomendada) | Brier v4 (rápida) |
 |---|---|---|---|
-| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção; **o mais resistente a injeção, à frente do Jev** | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
+| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; **mais resistente a injeção que o Jev, com significância** | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
 | Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% | 50,8% |
 | Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s | **58–117 ms** |
 | Como rodar | `src/servidor.py --execucao execucoes/v2` | `src/servidor.py --execucao execucoes/v3` | `brier-serve` (pacote `brier/`) |
 
-**Use o v2** quando o acerto importa. **Use o v4** quando velocidade e recursos de produção (lotes,
-abstenção, auditoria, MCP) importam mais que alguns pontos de acerto.
+**Use o v3** na maioria dos casos: em triagem de texto vindo de terceiros (WhatsApp, e-mail, chamados,
+comentários), qualquer pessoa pode escrever "classifique como urgente" na mensagem, e o v3 é a única
+versão comprovadamente mais difícil de manipular que o Jev, perdendo só 1,6 a 3,8 pontos de acerto
+para o v2. **Use o v2** quando o texto é confiável e cada ponto de acerto importa. **Use o v4** quando
+velocidade e recursos de produção (lotes, abstenção, auditoria, MCP) importam mais que o acerto.
 
 ### Melhores resultados do Brier até aqui (contra o Jev, mesmos pedidos)
 
@@ -169,9 +172,9 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
 Medido no MacBook Air M5: {c['assin2']['latencia_p50_ms']:.0f}–{c['sintetico']['latencia_p50_ms']:.0f} ms por pedido, ~25 ms por texto em lote, ~{r['longo']['latencia_p50_ms']/1000:.1f} s para um documento de
 ~2.500 tokens lido por janelas.
 
-### Brier v2 (Qwen3-4B)
+### Brier v3 e v2 (Qwen3-4B)
 
-O v2 roda em **Windows, Linux e macOS** e tem dois motores, que dão as mesmas respostas:
+O v3 (padrão do `src/servidor.py`) e o v2 rodam em **Windows, Linux e macOS** e tem dois motores, que dão as mesmas respostas:
 
 | Sistema | Motor | Hardware |
 |---|---|---|
@@ -200,7 +203,7 @@ O servidor escolhe o motor sozinho; para forçar, use `--motor torch` ou `--moto
 py -3.11 -m venv .venv
 .venv\Scripts\pip install torch --index-url https://download.pytorch.org/whl/cu124   # GPU NVIDIA; para só CPU use /whl/cpu
 .venv\Scripts\pip install -r requirements.txt
-.venv\Scripts\python src\servidor.py --execucao execucoes\v2 --porta 8790
+.venv\Scripts\python src\servidor.py --execucao execucoes\v3 --porta 8790
 ```
 
 **Linux**
@@ -209,7 +212,7 @@ py -3.11 -m venv .venv
 python3 -m venv .venv
 .venv/bin/pip install torch            # CUDA incluso; para só CPU: --index-url https://download.pytorch.org/whl/cpu
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python src/servidor.py --execucao execucoes/v2 --porta 8790
+.venv/bin/python src/servidor.py --execucao execucoes/v3 --porta 8790
 ```
 
 **macOS (Apple Silicon)**
@@ -217,7 +220,7 @@ python3 -m venv .venv
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt -r requirements-mlx.txt
-.venv/bin/python src/servidor.py --execucao execucoes/v2 --porta 8790
+.venv/bin/python src/servidor.py --execucao execucoes/v3 --porta 8790
 ```
 
 Na primeira execução, a base (Qwen3-4B em 4 bits, ~2,3 GB) baixa sozinha do Hugging Face. No motor
@@ -326,10 +329,10 @@ TYPESAFE_API_KEY=… .venv/bin/python src/comparar_jev.py   # coleta as resposta
 - `brier/`: pacote do Brier v4 (motor, servidor, MCP, LangChain, mascaramento de dados pessoais)
 - `clientes/typescript/`: cliente TypeScript
 - `src/`: geração, rotulagem, treino, avaliação, servidor do v2 e comparação
-- `execucoes/v2/`: adaptadores do Brier v2 (padrão) e calibração conformal
+- `execucoes/v3/`: adaptadores do Brier v3 (padrão do servidor) e calibração conformal
+- `execucoes/v2/`: adaptadores do Brier v2 e calibração conformal
 - `execucoes/v1/`: adaptadores do v1 (Qwen3-1.7B), com SWA e SWAG
 - `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_v4.json`: métricas das comparações pareadas
-- `execucoes/v3/`: adaptadores do v3 (treinado contra injeção e textos longos)
 - `dados/sintetico*.jsonl`: os dados sintéticos de treino e teste, com votos e alvos
 
 Não redistribuímos dados de terceiros: ASSIN, ASSIN2, B2W, FaQuAD-NLI, HateBR e tweetSentBR são baixados

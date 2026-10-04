@@ -10,7 +10,7 @@ serviço com esse formato. Cada resposta traz `incerteza` e, com calibração co
 (opções que cobrem a resposta certa com 90% de garantia). `amostras` (padrão 1) > 1 liga as camadas
 estocásticas.
 
-Uso: python src/servidor.py --execucao execucoes/v2 --porta 8790
+Uso: python src/servidor.py --execucao execucoes/v3 --porta 8790
 """
 import argparse
 import json
@@ -23,7 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from nucleo import valida_pergunta  # noqa: E402
 
-NOME = "brier-2"
+NOME = "brier-3"
 
 
 def motor_padrao() -> str:
@@ -112,7 +112,7 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):  # console do Windows não é UTF-8 por padrão
         sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--execucao", default="execucoes/v2")
+    ap.add_argument("--execucao", default="execucoes/v3")
     ap.add_argument("--porta", type=int, default=8790)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--motor", choices=["auto", "mlx", "torch"], default="auto")
