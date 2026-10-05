@@ -21,7 +21,7 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 
 ## Versões
 
-| | Brier v2 (mais preciso) | **Brier v3** (recomendada) | Brier v4 (rápida) |
+| | Brier v2 (mais preciso) | **Brier v3** (recomendada) | Brier v4 · `rapido` (rápida) |
 |---|---|---|---|
 | Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; mais resistente a injeção que o Jev | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
 | Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% | 50,8% |
@@ -184,7 +184,7 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
   LangChain/LangGraph (`brier.langchain`), cliente TypeScript (`clientes/typescript/brier.ts`) e
   `Dockerfile`.
 
-Latência no MacBook Air M5: v3 ~1 s por pedido (MLX); comitê ~1,8 s; `rapido` 58–117 ms por pedido,
+Latência no MacBook Air M5: v3 ~1,3 s por pedido (MLX, mediana); comitê ~2× isso; `rapido` 58–117 ms por pedido,
 ~25 ms por texto em lote e ~5 s para um documento de ~2.500 tokens lido por janelas.
 
 ### Brier v3 e v2 (Qwen3-4B) a partir do repositório
@@ -319,7 +319,7 @@ confiança de 95% por bootstrap pareado. O critério de vitória foi fixado **an
 | Injeção, frases nossas (taxa de ataque, menor é melhor) | não medido | **16,7%** | não medido | 44,1% | 21,4% | **v3 mais resistente que o Jev, com significância** |
 | Injeção, teste cego (57 frases do mangaba-titan, n=200) | não medido | **17,5%** | 22,5% | não medido | 20,5% | v3 à frente do Jev, sem significância; comitê pior |
 | Documentos longos (acerto limpo → longo) | não medido | 73,5% → 59,1% | não medido | 46,6% → 33,2% | 78,2% → 73,0% | Jev melhor |
-| Latência mediana | ~1,3 s (Mac M5) | ~1 s (Mac M5) | ~1,8 s (Mac M5) | 58–117 ms (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
+| Latência mediana | ~1,3 s (Mac M5) | ~1,3 s (Mac M5) | ~2× o v3 (Mac M5) | 58–117 ms (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
 
 **Veredito pelo critério: nenhuma versão do Brier é melhor que o Jev ainda.** Vitórias em conjuntos
 humanos: v2 = 0, v3 = 0, comitê = 0, v4 = 0. O v2 é o mais próximo (empata no sintético e no B2W, onde é mais
