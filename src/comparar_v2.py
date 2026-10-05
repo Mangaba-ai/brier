@@ -91,6 +91,14 @@ def roda_local(execucao, dados):
     return res
 
 
+def roda_versao(nome, dados):
+    """Versão do pacote (ex.: "comite") pela fachada brier.Brier; saída no formato do Jev."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from brier import Brier
+    b = Brier(nome)
+    return {k: [para_itens(e, b.decide(e["state"], e["questions"])) for e in exs] for k, (exs, _) in dados.items()}
+
+
 def main():
     mx.set_cache_limit(1024 ** 3)  # sem teto o cache do MLX cresce a cada comprimento novo e leva a swap
     ap = argparse.ArgumentParser()
@@ -106,7 +114,7 @@ def main():
     relatorio = {"criterio": "vence se, em >=2 de " + "/".join(HUMANOS) +
                  ", IC95% favorável ao Brier em acurácia E escore de Brier", "modelos": {}}
     for exe in a.execucoes:
-        loc = roda_local(exe, dados)
+        loc = roda_local(exe, dados) if Path(exe).is_dir() else roda_versao(exe, dados)
         r = {}
         vitorias = 0
         for nome in dados:

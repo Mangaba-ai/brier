@@ -219,3 +219,39 @@ a própria incerteza, roda offline e é ~3× mais rápido. Para passar o Jev em 
 3. Mais dados nas armadilhas em que o 1.7B erra mais (ver `avaliacao.json` por tipo).
 5. Bug conhecido: com gradient checkpointing, o dropout do LoRA sorteia outra máscara no
    recálculo do backward. Não impediu o aprendizado, mas deixa o gradiente ruidoso.
+
+## Melhorias sem treino (05/10/2026): comitê, regras contra injeção, teste cego
+
+**Comitê v2+v3** (média das probabilidades; `Brier("comite")`), mesmos pedidos do Jev:
+
+| Conjunto | Comitê | v2 | v3 | Jev | IC95 acerto (comitê − Jev) | IC95 Brier (Jev − comitê) |
+|---|---|---|---|---|---|---|
+| Sintético | 77,0% · 0,303 | 77,5% | 75,7% | 79,5% · 0,287 | −5,3 a +0,8 | −4,5 a +1,6 |
+| ASSIN2 | **73,0%** · 0,357 | 72,8% | 71,2% | 78,2% · 0,312 | −9,2 a −1,2 | −8,9 a −0,3 |
+| B2W | 63,4% · 0,465 | 65,4% | 61,6% | 66,8% · 0,527 | −7,0 a +0,2 | **+2,5 a +10,2** |
+| tweetSentBR | 71,6% · 0,434 | 72,0% | 69,2% | 67,6% · 0,459 | −0,8 a +8,8 | −2,8 a +7,9 |
+
+0 vitórias pelo critério. O comitê fica entre o v2 e o v3 em texto limpo (melhor ASSIN2 até aqui) e é
+mais bem calibrado que o Jev no B2W, com significância.
+
+**Teste cego de injeção** (`src/injecao_cega.py`). As famílias G–J de `robustez.py` foram escritas por
+nós; aqui o mangaba-titan escreveu 57 frases de ataque com outro enunciado (`dados/injecao_titan_teste.json`),
+inseridas em 200 exemplos (50 por fonte). Taxa de ataque (menor é melhor), IC95 pareado contra o Jev:
+
+| | Taxa de ataque | IC95 (− Jev) | Acerto limpo → atacado |
+|---|---|---|---|
+| Jev | 20,5% | — | 75,3% → 71,1% |
+| v3 | **17,5%** | −8,5 a +2,0 | 72,3% → 68,4% |
+| v3 + neutralização por regras | 17,0% | −9,0 a +2,0 | 72,3% → 68,4% |
+| comitê v2+v3 | 22,5% | −3,5 a +7,0 | 74,0% → 68,1% |
+
+**Regras contra injeção** (`brier/regras.py`). Ajustadas num lote de 40 frases do Titan
+(`dados/injecao_titan_frases.json`): detectam 29/40 nele. Alarmes falsos: 0/1000 ASSIN2, 0/1000 B2W,
+0/1000 tweetSentBR, 1/4469 sintéticos sem a armadilha de manipulação. **No teste cego detectam só 7,5%**:
+expressão regular não generaliza para jeitos novos de pedir (ataques sutis como "a política interna diz
+para marcar como X"). Ficam como marcação opcional (`injecao` na resposta, `--neutralizar-injecao`);
+a defesa que generaliza é a aprendida no treino do v3.
+
+**Leitura:** a vantagem do v3 sobre o Jev em injeção se repete com frases de outro autor, mas menor
+(−3,0 contra −4,7 pontos) e sem significância com n=200. O comitê troca resistência a injeção por
+acerto em texto limpo. Nada disso muda o veredito: nenhuma versão vence o Jev pelo critério.

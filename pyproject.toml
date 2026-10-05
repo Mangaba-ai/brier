@@ -4,14 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brier"
-version = "4.0.0"
-description = "Decisões tipadas e calibradas (choice, score, noul), locais e abertas. Arquitetura e pesos do Laya."
+version = "4.1.0"
+description = "Decisões tipadas e calibradas (choice, score, noul), locais e abertas. v3 (Qwen3-4B + LoRA) por padrão; versão rápida com os pesos do Laya."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = ["laya>=0.3.26", "torch>=2.3", "transformers>=4.51", "safetensors>=0.4", "huggingface_hub>=0.23"]
 
 [project.optional-dependencies]
+mac = ["mlx-lm>=0.26"]
 mcp = ["mcp>=1.2"]
 langchain = ["langchain-core>=0.3"]
 

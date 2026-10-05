@@ -1,0 +1,115 @@
+{
+ "criterio": "vence se, em >=2 de assin2/b2w/tweetsentbr, IC95% favorável ao Brier em acurácia E escore de Brier",
+ "modelos": {
+  "comite": {
+   "sintetico": {
+    "brier_modelo": {
+     "n": 779,
+     "acc": 0.7702,
+     "nll": 0.5561,
+     "brier": 0.3031,
+     "ece": 0.0442,
+     "mae_score": 0.5336
+    },
+    "jev": {
+     "n": 779,
+     "acc": 0.7946,
+     "nll": 0.8953,
+     "brier": 0.2866,
+     "ece": 0.0719,
+     "mae_score": 0.4159
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.0526,
+     0.0077
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.045,
+     0.0157
+    ],
+    "vence": false
+   },
+   "assin2": {
+    "brier_modelo": {
+     "n": 500,
+     "acc": 0.73,
+     "nll": 0.639,
+     "brier": 0.3572,
+     "ece": 0.0601,
+     "mae_score": 0.5631
+    },
+    "jev": {
+     "n": 500,
+     "acc": 0.782,
+     "nll": 0.7037,
+     "brier": 0.3119,
+     "ece": 0.0567,
+     "mae_score": 0.434
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.092,
+     -0.012
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0887,
+     -0.0027
+    ],
+    "vence": false
+   },
+   "b2w": {
+    "brier_modelo": {
+     "n": 500,
+     "acc": 0.634,
+     "nll": 0.8344,
+     "brier": 0.4653,
+     "ece": 0.1326,
+     "mae_score": 0.6844
+    },
+    "jev": {
+     "n": 500,
+     "acc": 0.668,
+     "nll": 1.8607,
+     "brier": 0.5274,
+     "ece": 0.1779,
+     "mae_score": 0.6184
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.07,
+     0.002
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     0.0251,
+     0.1024
+    ],
+    "vence": false
+   },
+   "tweetsentbr": {
+    "brier_modelo": {
+     "n": 250,
+     "acc": 0.716,
+     "nll": 0.7729,
+     "brier": 0.4338,
+     "ece": 0.1404
+    },
+    "jev": {
+     "n": 250,
+     "acc": 0.676,
+     "nll": 1.2567,
+     "brier": 0.4594,
+     "ece": 0.1641
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.008,
+     0.088
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0276,
+     0.0789
+    ],
+    "vence": false
+   },
+   "vitorias_humanas": 0,
+   "melhor_que_jev": false
+  }
+ }
+}

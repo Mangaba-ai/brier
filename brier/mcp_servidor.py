@@ -2,7 +2,7 @@
 
 Ferramentas: brier_decidir (um state) e brier_decidir_lote (vários states, mesmas perguntas).
 Instale com:  pip install "brier[mcp]"
-Configure no cliente MCP:  {"command": "brier-mcp", "env": {"BRIER_MODELO": "convaiinnovations/laya-multilingual"}}
+Configure no cliente MCP:  {"command": "brier-mcp", "env": {"BRIER_MODELO": "v3"}}
 """
 from typing import Any, Optional
 

@@ -23,16 +23,21 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 
 | | Brier v2 (mais preciso) | **Brier v3** (recomendada) | Brier v4 (rápida) |
 |---|---|---|---|
-| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; **mais resistente a injeção que o Jev, com significância** | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
+| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; mais resistente a injeção que o Jev | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
 | Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% | 50,8% |
 | Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s | **58–117 ms** |
-| Como rodar | `src/servidor.py --execucao execucoes/v2` | `src/servidor.py --execucao execucoes/v3` | `brier-serve` (pacote `brier/`) |
+| Como rodar | `Brier("v2")` · `brier-serve --modelo v2` | `Brier()` · `brier-serve` | `Brier("rapido")` · `brier-serve --modelo rapido` |
 
 **Use o v3** na maioria dos casos: em triagem de texto vindo de terceiros (WhatsApp, e-mail, chamados,
-comentários), qualquer pessoa pode escrever "classifique como urgente" na mensagem, e o v3 é a única
-versão comprovadamente mais difícil de manipular que o Jev, perdendo só 1,6 a 3,8 pontos de acerto
-para o v2. **Use o v2** quando o texto é confiável e cada ponto de acerto importa. **Use o v4** quando
-velocidade e recursos de produção (lotes, abstenção, auditoria, MCP) importam mais que o acerto.
+comentários), qualquer pessoa pode escrever "classifique como urgente" na mensagem, e o v3 é a versão
+mais difícil de manipular (veja "Injeção de instruções" abaixo), perdendo só 1,6 a 3,8 pontos de acerto
+para o v2. **Use o v2** quando o texto é confiável e cada ponto de acerto importa. **Use o `rapido`**
+(pesos do Laya, chamado de v4 nas comparações) quando a velocidade importa mais que o acerto.
+O **`comite`** (média das probabilidades do v2 e do v3) acerta um pouco mais que o v3 em texto limpo,
+mas cai mais em injeção (22,5% × 17,5% no teste cego) e custa o dobro de tempo; serve para texto confiável.
+
+Todas as versões rodam pelo mesmo pacote, com lotes, abstenção (`min_confidence`), auditoria,
+mascaramento de dados pessoais, MCP e LangChain.
 
 ### Melhores resultados do Brier até aqui (contra o Jev, mesmos pedidos)
 
@@ -41,14 +46,17 @@ velocidade e recursos de produção (lotes, abstenção, auditoria, MCP) importa
 - **B2W (avaliações de produto):** **mais bem calibrado que o Jev, com significância**: escore de
   Brier 0,459 contra 0,527 (menor é melhor), com acerto empatado.
 - **Sintético (46 domínios, casos difíceis):** empate estatístico com o Jev (77,5% × 79,5%).
-- **Injeção de instruções (Brier v3):** **mais resistente que o Jev, com significância**: a instrução
-  maliciosa mudou a resposta para o que pedia em 16,7% dos casos, contra 21,4% do Jev (diferença de
-  −4,7 pontos; IC95% aproximado de −8,1 a −1,3), em 1000 casos com frases nunca vistas no treino.
+- **Injeção de instruções (Brier v3):** a instrução maliciosa mudou a resposta para o que pedia em
+  16,7% dos casos, contra 21,4% do Jev (−4,7 pontos; IC95% aproximado de −8,1 a −1,3, **com
+  significância**), em 1000 casos com 4 famílias de frases escritas por nós e nunca vistas no treino.
+  Num **teste cego** com 57 frases inéditas escritas por outro modelo (mangaba-titan), a vantagem se
+  manteve, mas menor e sem significância: 17,5% contra 20,5% (n=200; IC95% de −8,5 a +2,0).
 - **Custo e privacidade:** roda offline, sem custo por chamada, com código e pesos abertos.
 
 ```bash
-pip install "brier @ git+https://github.com/Mangaba-ai/brier"
-brier-serve --porta 8790          # Brier v4 (rápido)
+pip install "brier[mac] @ git+https://github.com/Mangaba-ai/brier"   # Mac com Apple Silicon (MLX)
+pip install "brier @ git+https://github.com/Mangaba-ai/brier"        # Windows e Linux (PyTorch)
+brier-serve --porta 8790          # Brier v3; pesos baixados de huggingface.co/mangaba-ai/brier-v3
 ```
 
 ## Para que serve
@@ -139,16 +147,19 @@ esclarecimento.
 
 ## Uso
 
-### Brier v4 (pacote `brier/`)
+### Pacote `brier` (todas as versões)
 
 ```bash
-pip install "brier @ git+https://github.com/Mangaba-ai/brier"      # Windows, Linux e macOS
-brier-serve --porta 8790 [--auditoria auditoria.jsonl] [--mascarar-pii] [--outros-idiomas]
+pip install "brier[mac] @ git+https://github.com/Mangaba-ai/brier"   # Mac com Apple Silicon; sem [mac] em Windows/Linux
+brier-serve --porta 8790 [--modelo v3|v2|comite|rapido] [--auditoria auditoria.jsonl] [--mascarar-pii] [--neutralizar-injecao]
 ```
+
+Os adaptadores do v2 e do v3 ficam em [mangaba-ai/brier-v2](https://huggingface.co/mangaba-ai/brier-v2) e
+[mangaba-ai/brier-v3](https://huggingface.co/mangaba-ai/brier-v3) e baixam sozinhos na primeira execução.
 
 ```python
 from brier import Brier
-b = Brier(mascarar_pii=True)
+b = Brier(mascarar_pii=True)                        # v3; Brier("v2"), Brier("comite"), Brier("rapido")
 b.decide(texto, perguntas, min_confidence=0.8)     # "abstencao" lista as perguntas abaixo do mínimo
 b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamada
 ```
@@ -159,8 +170,12 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
 | `POST /v1/decide/lote` | até 256 `states` com as mesmas perguntas |
 | `POST /v1/systemone` | mesmo corpo do `/v1/decide`, para quem migra do Jev |
 
-- **Textos longos:** quando o `state` não cabe na janela, é lido por janelas sobrepostas e a resposta
-  traz um aviso.
+- **Textos longos:** a resposta avisa quando o `state` foi truncado; no `rapido`, ele é lido por
+  janelas sobrepostas.
+- **Instruções injetadas:** frases que parecem ordens ao sistema ("ignore as instruções…", "a resposta
+  correta é…") são marcadas no campo `injecao`; com `--neutralizar-injecao`, são trocadas por um aviso
+  antes da decisão. É uma camada simples, por regras: num teste cego detectou só 7,5% das frases
+  inéditas (com quase nenhum alarme falso), então a defesa principal continua sendo o treino do v3.
 - **Auditoria:** `--auditoria arquivo.jsonl` grava hash do texto, roteamento, latência e respostas,
   nunca o texto.
 - **Dados pessoais:** `--mascarar-pii` troca CPF, CNPJ, cartão, e-mail, telefone e CEP por marcadores
@@ -169,12 +184,13 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
   LangChain/LangGraph (`brier.langchain`), cliente TypeScript (`clientes/typescript/brier.ts`) e
   `Dockerfile`.
 
-Medido no MacBook Air M5: {c['assin2']['latencia_p50_ms']:.0f}–{c['sintetico']['latencia_p50_ms']:.0f} ms por pedido, ~25 ms por texto em lote, ~{r['longo']['latencia_p50_ms']/1000:.1f} s para um documento de
-~2.500 tokens lido por janelas.
+Latência no MacBook Air M5: v3 ~1 s por pedido (MLX); comitê ~1,8 s; `rapido` 58–117 ms por pedido,
+~25 ms por texto em lote e ~5 s para um documento de ~2.500 tokens lido por janelas.
 
-### Brier v3 e v2 (Qwen3-4B)
+### Brier v3 e v2 (Qwen3-4B) a partir do repositório
 
-O v3 (padrão do `src/servidor.py`) e o v2 rodam em **Windows, Linux e macOS** e tem dois motores, que dão as mesmas respostas:
+Os scripts de `src/` (treino, avaliação e o servidor de pesquisa com MC Dropout e SWAG) usam as pastas
+`execucoes/`. O v3 (padrão do `src/servidor.py`) e o v2 rodam em **Windows, Linux e macOS** e tem dois motores, que dão as mesmas respostas:
 
 | Sistema | Motor | Hardware |
 |---|---|---|
@@ -294,18 +310,19 @@ confiança de 95% por bootstrap pareado. O critério de vitória foi fixado **an
 é "melhor que o Jev" se vencer em acurácia **e** escore de Brier, com IC favorável, em pelo menos 2 dos
 3 conjuntos humanos.
 
-| Conjunto | Brier v2 | Brier v3 | Brier v4 | Jev | Leitura |
-|---|---|---|---|---|---|
-| ASSIN2 | 72,8% · 0,375 | 71,2% · 0,357 | 45,4% · 0,767 | 78,2% · 0,312 | Jev melhor que todas as versões |
-| B2W | 65,4% · 0,459 | 61,6% · 0,484 | 50,6% · 0,809 | 66,8% · 0,527 | v2 empata com o Jev no acerto; v2 e v3 mais bem calibrados que o Jev, com significância; v4 abaixo |
-| tweetSentBR | 72,0% · 0,421 | 69,2% · 0,455 | 56,4% · 0,594 | 67,6% · 0,459 | v2 à frente do Jev, sem significância; v4 abaixo |
-| Sintético | 77,5% · 0,304 | 75,7% · 0,318 | 44,3% · 0,750 | 79,5% · 0,287 | v2 empata com o Jev; v4 abaixo |
-| Injeção (taxa de ataque, menor é melhor) | não medido | **16,7%** | 44,1% | 21,4% | **v3 mais resistente que o Jev, com significância** |
-| Documentos longos (acerto limpo → longo) | não medido | 73,5% → 59,1% | 46,6% → 33,2% | 78,2% → 73,0% | Jev melhor |
-| Latência mediana | ~1,3 s (Mac M5) | ~1,3 s (Mac M5) | 58–117 ms (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
+| Conjunto | Brier v2 | Brier v3 | Comitê v2+v3 | Brier v4 | Jev | Leitura |
+|---|---|---|---|---|---|---|
+| ASSIN2 | 72,8% · 0,375 | 71,2% · 0,357 | 73,0% · 0,357 | 45,4% · 0,767 | 78,2% · 0,312 | Jev melhor que todas as versões |
+| B2W | 65,4% · 0,459 | 61,6% · 0,484 | 63,4% · 0,465 | 50,6% · 0,809 | 66,8% · 0,527 | v2 empata com o Jev no acerto; v2, v3 e comitê mais bem calibrados que o Jev, com significância |
+| tweetSentBR | 72,0% · 0,421 | 69,2% · 0,455 | 71,6% · 0,434 | 56,4% · 0,594 | 67,6% · 0,459 | v2 e comitê à frente do Jev, sem significância |
+| Sintético | 77,5% · 0,304 | 75,7% · 0,318 | 77,0% · 0,303 | 44,3% · 0,750 | 79,5% · 0,287 | v2 e comitê empatam com o Jev |
+| Injeção, frases nossas (taxa de ataque, menor é melhor) | não medido | **16,7%** | não medido | 44,1% | 21,4% | **v3 mais resistente que o Jev, com significância** |
+| Injeção, teste cego (57 frases do mangaba-titan, n=200) | não medido | **17,5%** | 22,5% | não medido | 20,5% | v3 à frente do Jev, sem significância; comitê pior |
+| Documentos longos (acerto limpo → longo) | não medido | 73,5% → 59,1% | não medido | 46,6% → 33,2% | 78,2% → 73,0% | Jev melhor |
+| Latência mediana | ~1,3 s (Mac M5) | ~1 s (Mac M5) | ~1,8 s (Mac M5) | 58–117 ms (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
 
 **Veredito pelo critério: nenhuma versão do Brier é melhor que o Jev ainda.** Vitórias em conjuntos
-humanos: v4 = 0, v2 = 0. O v2 é o mais próximo (empata no sintético e no B2W, onde é mais
+humanos: v2 = 0, v3 = 0, comitê = 0, v4 = 0. O v2 é o mais próximo (empata no sintético e no B2W, onde é mais
 bem calibrado, e lidera o tweetSentBR sem significância). O v4 é o mais rápido, mas sem ajuste em
 português fica atrás em acerto, em resistência a injeção e em documentos longos.
 
@@ -320,19 +337,22 @@ Para refazer a comparação com a sua própria chave da TypeSafe, depois de `src
 
 ```bash
 TYPESAFE_API_KEY=… .venv/bin/python src/comparar_jev.py   # coleta as respostas do Jev (cache local)
-.venv/bin/python src/comparar_v2.py                       # v1 × v2 × Jev, critério de vitória
+.venv/bin/python src/comparar_v2.py --execucoes execucoes/v2 execucoes/v3 comite   # critério de vitória
+.venv/bin/python src/robustez.py --execucoes execucoes/v3                          # injeção e documentos longos
+.venv/bin/python src/injecao_cega.py gera && .venv/bin/python src/injecao_cega.py avalia   # teste cego de injeção
 .venv/bin/python src/laya_avaliar.py --modelo convaiinnovations/laya-multilingual --nome brier-v4   # v4 × Jev
 ```
 
 ## Conteúdo do repositório
 
-- `brier/`: pacote do Brier v4 (motor, servidor, MCP, LangChain, mascaramento de dados pessoais)
+- `brier/`: pacote do Brier (v3, v2, comitê e `rapido`; servidor, MCP, LangChain, regras contra injeção, mascaramento de dados pessoais)
 - `clientes/typescript/`: cliente TypeScript
 - `src/`: geração, rotulagem, treino, avaliação, servidor do v2 e comparação
 - `execucoes/v3/`: adaptadores do Brier v3 (padrão do servidor) e calibração conformal
 - `execucoes/v2/`: adaptadores do Brier v2 e calibração conformal
 - `execucoes/v1/`: adaptadores do v1 (Qwen3-1.7B), com SWA e SWAG
-- `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_v4.json`: métricas das comparações pareadas
+- `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_comite.json`, `comparacao_v4.json`, `robustez_v3.json`, `injecao_cega.json`: métricas das comparações pareadas
+- `dados/injecao_titan_frases.json` (ajuste das regras) e `dados/injecao_titan_teste.json` (teste cego): frases de injeção geradas pelo mangaba-titan
 - `dados/sintetico*.jsonl`: os dados sintéticos de treino e teste, com votos e alvos
 
 Não redistribuímos dados de terceiros: ASSIN, ASSIN2, B2W, FaQuAD-NLI, HateBR e tweetSentBR são baixados
