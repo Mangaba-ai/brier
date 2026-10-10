@@ -1,4 +1,4 @@
-"""Testes do pacote brier (v4), sem baixar modelo: um motor falso no lugar do Laya ajustado."""
+"""Testes do pacote brier, sem baixar modelo: um motor falso no lugar do Qwen com os adaptadores."""
 import json
 import sys
 import threading
@@ -21,10 +21,10 @@ class MotorFalso:
     nome_modelo = "falso"
     rotulo = "brier-falso"
 
-    def decide(self, state, questions, min_confidence=None, longo="auto"):
+    def decide(self, state, questions, min_confidence=None):
         r = {"answers": {k: {"type": "choice", "choice": "suporte", "probabilities": {"suporte": 0.6, "retencao": 0.4},
                              "confidence": 0.6, "low_confidence": bool(min_confidence and min_confidence > 0.6)}
-                         for k in questions}, "model": "brier-4", "latencia_ms": 1.0}
+                         for k in questions}, "model": "brier-3", "latencia_ms": 1.0}
         if min_confidence is not None:
             r["abstencao"] = {"min_confidence": min_confidence,
                               "perguntas": [k for k, a in r["answers"].items() if a["low_confidence"]]}

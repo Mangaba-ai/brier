@@ -42,7 +42,7 @@ export class Brier {
     return dados as T;
   }
 
-  decide(state: unknown, questions: Record<string, Pergunta>, opcoes: { min_confidence?: number; longo?: "auto" | "sim" | "nao" } = {}) {
+  decide(state: unknown, questions: Record<string, Pergunta>, opcoes: { min_confidence?: number } = {}) {
     return this.post<Decisao>("/v1/decide", { state, questions, ...opcoes });
   }
 

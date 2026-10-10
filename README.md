@@ -2,7 +2,7 @@
 
 [![testes](https://github.com/Mangaba-ai/brier/actions/workflows/testes.yml/badge.svg)](https://github.com/Mangaba-ai/brier/actions/workflows/testes.yml)
 
-**Modelo aberto de decisão tipada e calibrada.** Roda localmente e não depende de nenhum serviço externo.
+**Modelo de decisão tipada e calibrada da Mangaba AI.** Roda localmente e não depende de nenhum serviço externo.
 
 O Brier recebe um conteúdo (`state`) e uma ou mais perguntas com respostas pré-definidas. Para cada
 pergunta, devolve a opção escolhida e a **probabilidade** de cada opção. Ele não gera texto: responde
@@ -12,7 +12,8 @@ O nome vem do [escore de Brier](https://en.wikipedia.org/wiki/Brier_score) (Glen
 de pontuação que mede se uma probabilidade bate com a realidade. É isso que o treino otimiza: acertar a
 **probabilidade**, não só a resposta.
 
-- **Código e pesos abertos:** Apache-2.0.
+- **Licença proprietária da Mangaba AI** a partir da versão 5.0.0 (ver [LICENSE](LICENSE) e [NOTICE](NOTICE)).
+  O que foi publicado até a tag `ultima-apache-2.0` continua sob Apache-2.0.
 - **Local e multiplataforma:** Windows, Linux e macOS, em CPU, GPU NVIDIA ou Apple Silicon. Offline e
   sem custo por chamada.
 - **Tipado:** a resposta sempre cabe no tipo pedido, por construção.
@@ -21,20 +22,22 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 
 ## Versões
 
-| | Brier v2 (mais preciso) | **Brier v3** (recomendada) | Brier v4 · `rapido` (rápida) |
-|---|---|---|---|
-| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; mais resistente a injeção que o Jev | arquitetura e pesos do [Laya](https://github.com/NandhaKishorM/laya) como estão (mmBERT de 322M) |
-| Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% | 50,8% |
-| Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s | **58–117 ms** |
-| Como rodar | `Brier("v2")` · `brier-serve --modelo v2` | `Brier()` · `brier-serve` | `Brier("rapido")` · `brier-serve --modelo rapido` |
+| | Brier v2 (mais preciso) | **Brier v3** (recomendada) |
+|---|---|---|
+| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; mais resistente a injeção que o Jev |
+| Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% |
+| Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s |
+| Como rodar | `Brier("v2")` · `brier-serve --modelo v2` | `Brier()` · `brier-serve` |
 
 **Use o v3** na maioria dos casos: em triagem de texto vindo de terceiros (WhatsApp, e-mail, chamados,
 comentários), qualquer pessoa pode escrever "classifique como urgente" na mensagem, e o v3 é a versão
 mais difícil de manipular (veja "Injeção de instruções" abaixo), perdendo só 1,6 a 3,8 pontos de acerto
-para o v2. **Use o v2** quando o texto é confiável e cada ponto de acerto importa. **Use o `rapido`**
-(pesos do Laya, chamado de v4 nas comparações) quando a velocidade importa mais que o acerto.
+para o v2. **Use o v2** quando o texto é confiável e cada ponto de acerto importa.
 O **`comite`** (média das probabilidades do v2 e do v3) acerta um pouco mais que o v3 em texto limpo,
 mas cai mais em injeção (22,5% × 17,5% no teste cego) e custa o dobro de tempo; serve para texto confiável.
+
+O antigo v4 (`rapido`, os pesos do Laya usados como estão) saiu do pacote na versão 5.0.0; os números
+dele continuam abaixo só como referência.
 
 Todas as versões rodam pelo mesmo pacote, com lotes, abstenção (`min_confidence`), auditoria,
 mascaramento de dados pessoais, MCP e LangChain.
@@ -51,13 +54,15 @@ mascaramento de dados pessoais, MCP e LangChain.
   significância**), em 1000 casos com 4 famílias de frases escritas por nós e nunca vistas no treino.
   Num **teste cego** com 57 frases inéditas escritas por outro modelo (mangaba-titan), a vantagem se
   manteve, mas menor e sem significância: 17,5% contra 20,5% (n=200; IC95% de −8,5 a +2,0).
-- **Custo e privacidade:** roda offline, sem custo por chamada, com código e pesos abertos.
+- **Custo e privacidade:** roda offline, sem custo por chamada e sem mandar texto para fora.
 
 ```bash
 pip install "brier[mac] @ git+https://github.com/Mangaba-ai/brier"   # Mac com Apple Silicon (MLX)
 pip install "brier @ git+https://github.com/Mangaba-ai/brier"        # Windows e Linux (PyTorch)
 brier-serve --porta 8790          # Brier v3; pesos baixados de huggingface.co/mangaba-ai/brier-v3
 ```
+
+O uso das versões a partir da 5.0.0 depende de licença da Mangaba AI ([LICENSE](LICENSE)).
 
 ## Para que serve
 
@@ -103,12 +108,7 @@ cliente quer cancelar) e que vale uma pergunta de esclarecimento ou uma revisão
 
 ## Como funciona por dentro
 
-**Brier v4.** Encoder bidirecional (mmBERT de 322M) com uma cabeça de decisão de 2 camadas, do projeto
-Laya. Cada opção vira um marcador na sequência; a cabeça dá uma nota a cada marcador e a distribuição é
-o softmax dessas notas. Os pesos foram treinados pelo Laya com reforço contra regras de pontuação
-próprias; o Brier v4 os usa como estão.
-
-**Brier v2.** Os parágrafos abaixo descrevem o v2, treinado pelo próprio Brier.
+Os parágrafos abaixo descrevem o v2; o v3 é o v2 retreinado também contra injeção de instruções.
 
 **Uma passada para todas as perguntas.** O `state` e as perguntas entram numa única sequência. Uma
 máscara de atenção em blocos faz cada pergunta enxergar o `state` e a si mesma, nunca as outras. Assim,
@@ -151,7 +151,7 @@ esclarecimento.
 
 ```bash
 pip install "brier[mac] @ git+https://github.com/Mangaba-ai/brier"   # Mac com Apple Silicon; sem [mac] em Windows/Linux
-brier-serve --porta 8790 [--modelo v3|v2|comite|rapido] [--auditoria auditoria.jsonl] [--mascarar-pii] [--neutralizar-injecao]
+brier-serve --porta 8790 [--modelo v3|v2|comite] [--auditoria auditoria.jsonl] [--mascarar-pii] [--neutralizar-injecao]
 ```
 
 Os adaptadores do v2 e do v3 ficam em [mangaba-ai/brier-v2](https://huggingface.co/mangaba-ai/brier-v2) e
@@ -159,19 +159,18 @@ Os adaptadores do v2 e do v3 ficam em [mangaba-ai/brier-v2](https://huggingface.
 
 ```python
 from brier import Brier
-b = Brier(mascarar_pii=True)                        # v3; Brier("v2"), Brier("comite"), Brier("rapido")
+b = Brier(mascarar_pii=True)                        # v3; Brier("v2"), Brier("comite")
 b.decide(texto, perguntas, min_confidence=0.8)     # "abstencao" lista as perguntas abaixo do mínimo
 b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamada
 ```
 
 | Rota | Para quê |
 |---|---|
-| `POST /v1/decide` | um `state`; `min_confidence` e `longo` ("auto", "sim", "nao") opcionais |
+| `POST /v1/decide` | um `state`; `min_confidence` opcional |
 | `POST /v1/decide/lote` | até 256 `states` com as mesmas perguntas |
 | `POST /v1/systemone` | mesmo corpo do `/v1/decide`, para quem migra do Jev |
 
-- **Textos longos:** a resposta avisa quando o `state` foi truncado; no `rapido`, ele é lido por
-  janelas sobrepostas.
+- **Textos longos:** a resposta avisa quando o `state` foi truncado.
 - **Instruções injetadas:** frases que parecem ordens ao sistema ("ignore as instruções…", "a resposta
   correta é…") são marcadas no campo `injecao`; com `--neutralizar-injecao`, são trocadas por um aviso
   antes da decisão. É uma camada simples, por regras: num teste cego detectou só 7,5% das frases
@@ -184,8 +183,7 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
   LangChain/LangGraph (`brier.langchain`), cliente TypeScript (`clientes/typescript/brier.ts`) e
   `Dockerfile`.
 
-Latência no MacBook Air M5: v3 ~1,3 s por pedido (MLX, mediana); comitê ~2× isso; `rapido` 58–117 ms por pedido,
-~25 ms por texto em lote e ~5 s para um documento de ~2.500 tokens lido por janelas.
+Latência no MacBook Air M5: v3 ~1,3 s por pedido (MLX, mediana); comitê ~2× isso.
 
 ### Brier v3 e v2 (Qwen3-4B) a partir do repositório
 
@@ -280,7 +278,7 @@ passo 680, quando a validação começou a piorar.
 Conjuntos com **rótulo humano que não entram no treino**, 250 pedidos por conjunto. Cada célula:
 acurácia · escore de Brier (menor é melhor).
 
-| Conjunto | Tarefa | Brier v2 | Brier v3 | Brier v4 (pesos do Laya) |
+| Conjunto | Tarefa | Brier v2 | Brier v3 | v4 antigo (pesos do Laya, fora do pacote) |
 |---|---|---|---|---|
 | ASSIN2 | implicação textual + similaridade | **72,8%** · 0,375 | 71,2% · 0,357 | 45,4% · 0,767 |
 | B2W | nota de 1 a 5 + recomendação | **65,4%** · 0,459 | 61,6% · 0,484 | 50,6% · 0,809 |
@@ -298,7 +296,7 @@ sintético. Números completos e histórico em [RESULTADOS.md](RESULTADOS.md).
 
 ## Comparação com o Jev (referência externa)
 
-O Brier é independente: código próprio, pesos abertos e nenhuma dependência de serviço de terceiros
+O Brier é independente: código próprio, pesos próprios e nenhuma dependência de serviço de terceiros
 para funcionar. O **Jev**, da TypeSafe AI, é um modelo comercial fechado de decisão tipada. Ele entra
 **só como régua de desempenho**, porque é a referência mais próxima do que o Brier faz.
 
@@ -326,8 +324,8 @@ humanos: v2 = 0, v3 = 0, comitê = 0, v4 = 0. O v2 é o mais próximo (empata no
 bem calibrado, e lidera o tweetSentBR sem significância). O v4 é o mais rápido, mas sem ajuste em
 português fica atrás em acerto, em resistência a injeção e em documentos longos.
 
-Vantagens que não dependem desse critério: roda offline, sem custo por chamada, com código e pesos
-abertos, e erra com menos convicção quando erra.
+Vantagens que não dependem desse critério: roda offline, sem custo por chamada, e erra com menos
+convicção quando erra.
 
 **Migração:** quem já usa o formato do Jev pode apontar para `POST /v1/systemone` neste servidor, que
 aceita o mesmo corpo. A rota nativa do Brier é `POST /v1/decide`.
@@ -352,7 +350,7 @@ inglês e decide, link a link, se o link nomeia uma aranha. O gabarito é objeti
 aranha quando o item do Wikidata descende da ordem Araneae pela árvore taxonômica (112 aranhas em 429
 links). Mesmo MacBook Air M5, mesma pergunta, um link por chamada, modelos carregados antes do cronômetro.
 
-| | Brier v3 | `rapido` (pesos do Laya) |
+| | Brier v3 | Laya (antigo `rapido`) |
 |---|---:|---:|
 | Tempo por link | 256 ms | **26 ms** |
 | Achados em 30 s (aranhas marcadas certo) | 17 | **92** |
@@ -362,7 +360,7 @@ links). Mesmo MacBook Air M5, mesma pergunta, um link por chamada, modelos carre
 | Cobertura (aranhas encontradas) | **99,1%** | 82,1% |
 | Escore de Brier (menor é melhor) | **0,131** | 0,295 |
 
-**Leitura:** contando só achados por tempo, o `rapido` vence, porque olha dez vezes mais links. Mas erra
+**Leitura:** contando só achados por tempo, o Laya vence, porque olha dez vezes mais links. Mas erra
 mais da metade: marca "Arthropoda" e "fangs" como aranha e deixa passar famílias como Theraphosidae. Os
 erros do v3 são termos sobre aranhas (anatomia, taxonomia), quase sempre com probabilidade entre 0,5 e 0,75.
 Pôr vários links numa só chamada (uma pergunta por link) não acelerou o v3 e derrubou a precisão.
@@ -370,7 +368,7 @@ Pôr vários links numa só chamada (uma pergunta por link) não acelerou o v3 e
 ```bash
 python src/spider_gabarito.py                     # execucoes/spider/links.json (Wikipédia + Wikidata)
 .venv/bin/python src/spider_corrida.py v3         # 1, 8, 16 e 32 links por chamada
-.venv/bin/python src/spider_corrida.py rapido
+.venv/bin/python src/spider_corrida.py rapido      # pesos do Laya, carregados direto
 .venv/bin/python src/spider_corrida.py v3 en      # pergunta em inglês
 ```
 
@@ -397,7 +395,7 @@ python src/tetris_aleatorio.py                         # Brier × 100 partidas a
 
 ## Conteúdo do repositório
 
-- `brier/`: pacote do Brier (v3, v2, comitê e `rapido`; servidor, MCP, LangChain, regras contra injeção, mascaramento de dados pessoais)
+- `brier/`: pacote do Brier (v3, v2 e comitê; servidor, MCP, LangChain, regras contra injeção, mascaramento de dados pessoais)
 - `clientes/typescript/`: cliente TypeScript
 - `src/`: geração, rotulagem, treino, avaliação, servidor do v2 e comparação
 - `execucoes/v3/`: adaptadores do Brier v3 (padrão do servidor) e calibração conformal
@@ -414,6 +412,13 @@ e convertidos por `src/externos.py` e `src/publicos.py`, sob as licenças de cad
 
 ## Licença
 
-Apache-2.0, a mesma do Qwen3 e do Laya. O Brier v4 usa a arquitetura e os pesos do Laya
-(NandhaKishorM / convaiinnovations, Apache-2.0), com crédito. Jev e TypeSafe são marcas da TypeSafe AI, citadas apenas para fins de
-comparação de desempenho. O Brier não tem vínculo com a TypeSafe AI.
+**Licença proprietária da Mangaba AI** a partir da versão 5.0.0: uso, cópia, modificação e
+distribuição só com autorização por escrito (texto completo em [LICENSE](LICENSE)). O código, os
+pesos e os dados publicados até a tag `ultima-apache-2.0`, inclusive os adaptadores v2 e v3 no Hugging
+Face tal como publicados até então, continuam sob a Apache-2.0 ([licenses/APACHE-2.0.txt](licenses/APACHE-2.0.txt)).
+
+Componentes de terceiros em [NOTICE](NOTICE): o Qwen3 (Apache-2.0) é a base dos adaptadores; o Laya
+(Apache-2.0) aparece só nos scripts de pesquisa e comparação. Jev e TypeSafe são marcas da TypeSafe
+AI, citadas apenas para fins de comparação de desempenho. O Brier não tem vínculo com a TypeSafe AI.
+
+Licenciamento: [mangaba.ia.br](https://mangaba.ia.br).

@@ -4,7 +4,7 @@ Modos: um link por chamada, ou vários links por chamada (uma pergunta noul por 
 responde numa única passada). Para cada modo: corrida de 30 s e página inteira (todos os links).
 Gabarito: execucoes/spider/links.json (src/spider_gabarito.py, Wikidata). Achado = aranha decidida como aranha (p >= 0,5).
 
-Uso: python src/spider_corrida.py v3|v2|rapido [en]   ("en" = pergunta em inglês, só 1 link por chamada)
+Uso: python src/spider_corrida.py v3|v2|rapido [en]   ("rapido" = pesos do Laya, carregados direto)   ("en" = pergunta em inglês, só 1 link por chamada)
 """
 import json
 import sys
@@ -75,10 +75,21 @@ def placar(res, limite=None):
             "ms_por_link": round(1000 * res[-1][2] / len(res), 1) if res else None}
 
 
+class Laya:
+    """Pesos do Laya, carregados direto (não fazem parte do pacote brier); mesma interface de decide()."""
+
+    def __init__(self):
+        import laya
+        self.agente = laya.load("convaiinnovations/laya-multilingual")
+
+    def decide(self, state, questions):
+        return self.agente.predict(state, questions)
+
+
 def main():
     modelo = sys.argv[1]
     t = time.time()
-    b = Brier(modelo)
+    b = Laya() if modelo == "rapido" else Brier(modelo)
     print(f"{modelo}: carregado em {time.time() - t:.1f}s", flush=True)
     ks = [1] if INGLES else [1, 8, 16, 32]
     saida = {}

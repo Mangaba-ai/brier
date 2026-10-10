@@ -1,7 +1,7 @@
-"""Brier: decisões tipadas e calibradas (choice, score, noul), locais e abertas.
+"""Brier: decisões tipadas e calibradas (choice, score, noul), locais.
 
     from brier import Brier
-    b = Brier()                       # v3; também "v2", "comite", "rapido" ou uma pasta/repositório
+    b = Brier()                       # v3; também "v2", "comite" ou uma pasta/repositório
     b.decide("internet caiu de novo, quero cancelar",
              {"setor": {"type": "choice", "instructions": "Qual time atende?",
                         "criteria": {"suporte": "Queda", "retencao": "Cancelamento"}}})
