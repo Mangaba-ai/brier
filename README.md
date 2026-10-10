@@ -343,6 +343,58 @@ TYPESAFE_API_KEY=… .venv/bin/python src/comparar_jev.py   # coleta as resposta
 .venv/bin/python src/laya_avaliar.py --modelo convaiinnovations/laya-multilingual --nome brier-v4   # v4 × Jev
 ```
 
+## Testes práticos
+
+### Corrida da página "Spider" (velocidade × acerto)
+
+Cada modelo percorre os links da página [Spider](https://en.wikipedia.org/wiki/Spider) da Wikipédia em
+inglês e decide, link a link, se o link nomeia uma aranha. O gabarito é objetivo: um link nomeia uma
+aranha quando o item do Wikidata descende da ordem Araneae pela árvore taxonômica (112 aranhas em 429
+links). Mesmo MacBook Air M5, mesma pergunta, um link por chamada, modelos carregados antes do cronômetro.
+
+| | Brier v3 | `rapido` (pesos do Laya) |
+|---|---:|---:|
+| Tempo por link | 256 ms | **26 ms** |
+| Achados em 30 s (aranhas marcadas certo) | 17 | **92** |
+| Alarmes falsos em 30 s | **28** | 215 |
+| Acurácia na página inteira | **84,4%** (89,3% com a pergunta em inglês) | 45,2% (45,5% em inglês) |
+| Precisão (quando diz "é aranha") | **62,7%** | 30,0% |
+| Cobertura (aranhas encontradas) | **99,1%** | 82,1% |
+| Escore de Brier (menor é melhor) | **0,131** | 0,295 |
+
+**Leitura:** contando só achados por tempo, o `rapido` vence, porque olha dez vezes mais links. Mas erra
+mais da metade: marca "Arthropoda" e "fangs" como aranha e deixa passar famílias como Theraphosidae. Os
+erros do v3 são termos sobre aranhas (anatomia, taxonomia), quase sempre com probabilidade entre 0,5 e 0,75.
+Pôr vários links numa só chamada (uma pergunta por link) não acelerou o v3 e derrubou a precisão.
+
+```bash
+python src/spider_gabarito.py                     # execucoes/spider/links.json (Wikipédia + Wikidata)
+.venv/bin/python src/spider_corrida.py v3         # 1, 8, 16 e 32 links por chamada
+.venv/bin/python src/spider_corrida.py rapido
+.venv/bin/python src/spider_corrida.py v3 en      # pergunta em inglês
+```
+
+### Tetris (decisão encadeada)
+
+Cada peça vira uma pergunta `choice` com até 26 jogadas, descritas pelo efeito no tabuleiro
+(`src/tetris.py`); um erro se acumula nas peças seguintes. Mesmas peças para todos, 150 peças no máximo.
+
+| Semente | Brier v2 | Brier v3 | Regra gulosa | Jev | Aleatório (média de 100) |
+|---|---|---|---|---|---|
+| 7 | 1.500 pts · 70 peças | 600 · 53 | 5.200 · 145 | 5.500 · 150 | 18 · 26,8 |
+| 11 | 300 · 45 | 1.000 · 55 | 6.700 · 150 | 4.800 · 150 | 11 · 26,4 |
+| 23 | 1.900 · 69 | 400 · 47 | 6.300 · 150 | 3.300 · 116 | 12 · 27,0 |
+
+O Brier vence as 300 partidas aleatórias de referência (v2 e v3), mas fica bem atrás da regra gulosa (uma
+fórmula feita à mão para Tetris) e do Jev. O v3, treinado contra injeção, joga pior que o v2 no total.
+Do Jev entram só os placares; as jogadas não são redistribuídas.
+
+```bash
+.venv/bin/python src/tetris_brier.py execucoes/v2 7   # o Brier joga (grava execucoes/tetris/brier_7.json)
+python src/tetris.py                                   # regra gulosa
+python src/tetris_aleatorio.py                         # Brier × 100 partidas aleatórias por semente
+```
+
 ## Conteúdo do repositório
 
 - `brier/`: pacote do Brier (v3, v2, comitê e `rapido`; servidor, MCP, LangChain, regras contra injeção, mascaramento de dados pessoais)
@@ -354,6 +406,8 @@ TYPESAFE_API_KEY=… .venv/bin/python src/comparar_jev.py   # coleta as resposta
 - `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_comite.json`, `comparacao_v4.json`, `robustez_v3.json`, `injecao_cega.json`: métricas das comparações pareadas
 - `dados/injecao_titan_frases.json` (ajuste das regras) e `dados/injecao_titan_teste.json` (teste cego): frases de injeção geradas pelo mangaba-titan
 - `dados/sintetico*.jsonl`: os dados sintéticos de treino e teste, com votos e alvos
+- `execucoes/spider/`: gabarito (Wikidata) e resultados da corrida da página "Spider"
+- `execucoes/tetris/`: partidas de Tetris do Brier v2 (`brier_*.json`), do v3 (`brier_v3_*.json`) e da regra gulosa
 
 Não redistribuímos dados de terceiros: ASSIN, ASSIN2, B2W, FaQuAD-NLI, HateBR e tweetSentBR são baixados
 e convertidos por `src/externos.py` e `src/publicos.py`, sob as licenças de cada conjunto.
