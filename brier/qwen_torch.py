@@ -14,6 +14,8 @@ PyTorch usa a permutação estocástica das opções, que foi a camada que mais 
 """
 from __future__ import annotations
 
+import os
+
 import json
 import random
 from pathlib import Path
@@ -107,6 +109,9 @@ class DecisorTorch:
         d = Path(execucao)
         cfg = json.loads((d / "config.json").read_text(encoding="utf-8"))
         self.dispositivo = dispositivo or dispositivo_padrao()
+        # BRIER_DTYPE=float32 em CPU sem bf16 nativo (ex.: Xeon Cascade Lake, sem
+        # avx512_bf16/AMX): lá o bf16 é emulado e fica mais lento que o fp32.
+        dtype = os.environ.get("BRIER_DTYPE", dtype) if dtype == "auto" else dtype
         if dtype == "auto":
             tipo = torch.float16 if self.dispositivo == "mps" else torch.bfloat16
         else:
