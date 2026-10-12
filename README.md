@@ -4,6 +4,10 @@
 
 **Modelo de decisão tipada e calibrada da Mangaba AI.** Roda localmente e não depende de nenhum serviço externo.
 
+> **English:** Brier is a typed, calibrated decision model for Portuguese text, by Mangaba AI. It runs
+> locally and returns, for each question, the chosen option and the probability of every option.
+> Site, plans and licensing: [brier.mangaba.ia.br](https://brier.mangaba.ia.br/#planos).
+
 O Brier recebe um conteúdo (`state`) e uma ou mais perguntas com respostas pré-definidas. Para cada
 pergunta, devolve a opção escolhida e a **probabilidade** de cada opção. Ele não gera texto: responde
 sempre dentro das opções que você definiu, e diz o quanto tem certeza.
@@ -13,7 +17,8 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 **probabilidade**, não só a resposta.
 
 - **Licença proprietária da Mangaba AI** a partir da versão 5.0.0 (ver [LICENSE](LICENSE) e [NOTICE](NOTICE)).
-  O que foi publicado até a tag `ultima-apache-2.0` continua sob Apache-2.0.
+  O que foi publicado até a tag `ultima-apache-2.0` (pacote 4.1.0 e os pesos v2 e v3) continua sob
+  Apache-2.0. Planos: [brier.mangaba.ia.br/pt#planos](https://brier.mangaba.ia.br/pt#planos).
 - **Local e multiplataforma:** Windows, Linux e macOS, em CPU, GPU NVIDIA ou Apple Silicon. Offline e
   sem custo por chamada.
 - **Tipado:** a resposta sempre cabe no tipo pedido, por construção.
@@ -63,7 +68,8 @@ pip install "brier @ git+https://github.com/Mangaba-ai/brier"        # Windows e
 brier-serve --porta 8790          # Brier v3; pesos baixados de huggingface.co/mangaba-ai/brier-v3
 ```
 
-O uso das versões a partir da 5.0.0 depende de licença da Mangaba AI ([LICENSE](LICENSE)).
+O uso das versões a partir da 5.0.0 depende de licença da Mangaba AI ([LICENSE](LICENSE);
+planos em [brier.mangaba.ia.br/pt#planos](https://brier.mangaba.ia.br/pt#planos)).
 
 ## Para que serve
 
@@ -209,8 +215,10 @@ Os scripts de `src/` (treino, avaliação e o servidor de pesquisa com MC Dropou
 
 O tempo cresce com o tamanho do `state` e com o número de perguntas.
 
-A CPU funciona, mas é lenta para um modelo de 4B; para uso real, prefira GPU. Em GPU NVIDIA ainda
-não medimos.
+A CPU funciona, mas é lenta para um modelo de 4B; para uso real, prefira GPU. Em CPU sem bf16 nativo
+(por exemplo, Xeon Cascade Lake, sem `avx512_bf16` nem AMX), o bf16 é emulado: rode com
+`BRIER_DTYPE=float32`, que nessa máquina foi cerca de 5× mais rápido que o bf16 (o tempo acima é do
+bf16 no Mac). Em GPU NVIDIA ainda não medimos.
 
 O servidor escolhe o motor sozinho; para forçar, use `--motor torch` ou `--motor mlx`.
 
@@ -419,9 +427,13 @@ e convertidos por `src/externos.py` e `src/publicos.py`, sob as licenças de cad
 distribuição só com autorização por escrito (texto completo em [LICENSE](LICENSE)). O código, os
 pesos e os dados publicados até a tag `ultima-apache-2.0`, inclusive os adaptadores v2 e v3 no Hugging
 Face tal como publicados até então, continuam sob a Apache-2.0 ([licenses/APACHE-2.0.txt](licenses/APACHE-2.0.txt)).
+A licença comercial cobre a versão 5.0.0 em diante: uso em produção do pacote atual, suporte,
+recursos novos e versões futuras. Pesos de versões futuras serão distribuídos sob a licença
+proprietária, fora dos repositórios Apache `mangaba-ai/brier-v2` e `mangaba-ai/brier-v3`.
 
 Componentes de terceiros em [NOTICE](NOTICE): o Qwen3 (Apache-2.0) é a base dos adaptadores; o Laya
 (Apache-2.0) aparece só nos scripts de pesquisa e comparação. Jev e TypeSafe são marcas da TypeSafe
 AI, citadas apenas para fins de comparação de desempenho. O Brier não tem vínculo com a TypeSafe AI.
 
-Licenciamento: [mangaba.ia.br](https://mangaba.ia.br).
+Planos e licenciamento: [brier.mangaba.ia.br/pt#planos](https://brier.mangaba.ia.br/pt#planos) ·
+contato: [mangaba.ia.br](https://mangaba.ia.br).
