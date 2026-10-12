@@ -25,6 +25,7 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 | | Brier v2 (mais preciso) | **Brier v3** (recomendada) |
 |---|---|---|
 | Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; mais resistente a injeção que o Jev |
+| Aplicações | ![Análise de sentimento](https://img.shields.io/badge/An%C3%A1lise_de_sentimento-f59e0b) ![Avaliações de produto](https://img.shields.io/badge/Avalia%C3%A7%C3%B5es_de_produto-8b5cf6) ![Dados internos](https://img.shields.io/badge/Dados_internos-0ea5e9) ![Auditoria em lote](https://img.shields.io/badge/Auditoria_em_lote-2ea44f) | ![Atendimento no WhatsApp](https://img.shields.io/badge/Atendimento_no_WhatsApp-2ea44f) ![Triagem de chamados](https://img.shields.io/badge/Triagem_de_chamados-0ea5e9) ![E-mail e formulários](https://img.shields.io/badge/E--mail_e_formul%C3%A1rios-06b6d4) ![Proteção contra injeção](https://img.shields.io/badge/Prote%C3%A7%C3%A3o_contra_inje%C3%A7%C3%A3o-e11d48) |
 | Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% |
 | Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s |
 | Como rodar | `Brier("v2")` · `brier-serve --modelo v2` | `Brier()` · `brier-serve` |
