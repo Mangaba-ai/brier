@@ -102,9 +102,11 @@ Três tipos de pergunta:
 Toda resposta também traz `incerteza` e, com calibração carregada, `conjunto`. `confidence` vai de 0
 (distribuição uniforme) a 1 (certeza total): `1 − H(p)/log K`.
 
-No exemplo acima, a resposta para `setor` foi `retencao` com 54% e `suporte` com 45%, e o `conjunto`
-trouxe as duas opções. É o Brier dizendo que o caso é genuinamente ambíguo (internet caiu **e** o
-cliente quer cancelar) e que vale uma pergunta de esclarecimento ou uma revisão humana.
+No exemplo acima, o Brier v3 (padrão) respondeu `setor` = `suporte` com 84%, `retencao` com 15% e
+`financeiro` com 1%; `raiva` = 1,82 (perto de "Muito irritado") e `urgente` = 0,86. O `conjunto` de
+`setor` trouxe `suporte` **e** `retencao`: é o Brier dizendo que o caso tem duas leituras (a internet caiu
+**e** o cliente quer cancelar) e que vale uma pergunta de esclarecimento ou uma revisão humana. A resposta
+levou 0,37 s num MacBook Air M5 (pedido curto; a mediana nos pedidos de teste é ~1,3 s).
 
 ## Como funciona por dentro
 

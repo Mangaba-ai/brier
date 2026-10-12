@@ -42,8 +42,9 @@ def test_mascara_dados_pessoais():
     assert mascarar({"cliente": {"doc": "11.222.333/0001-81"}})["cliente"]["doc"] == "[CNPJ]"
 
 
-def test_valida_pergunta_aceita_255_opcoes():
-    assert valida_pergunta({"type": "choice", "instructions": "x", "criteria": {str(i): "o" for i in range(255)}})
+def test_valida_pergunta_limita_choice_a_26_opcoes():
+    assert valida_pergunta({"type": "choice", "instructions": "x", "criteria": {str(i): "o" for i in range(26)}})
+    assert not valida_pergunta({"type": "choice", "instructions": "x", "criteria": {str(i): "o" for i in range(27)}})
     assert not valida_pergunta({"type": "choice", "instructions": "x", "criteria": {"a": 1}})
 
 

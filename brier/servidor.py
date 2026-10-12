@@ -14,6 +14,7 @@ import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 
 from .motor import MODELO_PADRAO, Brier
+from .nucleo import LETRAS
 
 
 def valida_pergunta(q) -> bool:
@@ -21,7 +22,7 @@ def valida_pergunta(q) -> bool:
         return False
     t, c = q.get("type"), q.get("criteria")
     if t == "choice":
-        return isinstance(c, dict) and 2 <= len(c) <= 255
+        return isinstance(c, dict) and 2 <= len(c) <= len(LETRAS)
     if t == "score":
         return isinstance(c, list) and 2 <= len(c) <= 10
     if t == "noul":
