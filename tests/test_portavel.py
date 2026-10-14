@@ -19,10 +19,10 @@ import numpy as np
 import pytest
 import torch
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from nucleo import formata, mascara_blocos_np, valida_pergunta  # noqa: E402
-from motor_torch import DecisorTorch, _dequantiza, _funde_lora  # noqa: E402
+from brier.nucleo import formata, mascara_blocos_np, valida_pergunta  # noqa: E402
+from brier.qwen_torch import DecisorTorch, _dequantiza, _funde_lora  # noqa: E402
 
 
 class TokenizadorDeCaracteres:
@@ -139,8 +139,21 @@ def test_formata_conformal():
 
 
 def test_servidor_valida_e_responde_utf8(decisor):
-    from servidor import cria_handler
-    srv = HTTPServer(("127.0.0.1", 0), cria_handler(decisor))
+    import threading as _t
+
+    from brier.motor import Brier
+    from brier.servidor import cria_handler
+
+    class Agente:  # o motor de verdade, com o Qwen minúsculo, atrás da interface do pacote
+        def predict(self, state, questions, min_confidence=None):
+            return decisor.decide({"state": state, "questions": questions})
+
+    b = Brier.__new__(Brier)
+    b.versao, b.nome_modelo, b.agente = "v3", "minusculo", Agente()
+    b.mascarar_pii = b.neutralizar_injecao = False
+    b.auditoria = b.antes = b.depois = None
+    b._trava = _t.Lock()
+    srv = HTTPServer(("127.0.0.1", 0), cria_handler(b))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     url = f"http://127.0.0.1:{srv.server_address[1]}"
 

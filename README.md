@@ -42,9 +42,6 @@ para o v2. **Use o v2** quando o texto é confiável e cada ponto de acerto impo
 O **`comite`** (média das probabilidades do v2 e do v3) acerta um pouco mais que o v3 em texto limpo,
 mas cai mais em injeção (22,5% × 17,5% no teste cego) e custa o dobro de tempo; serve para texto confiável.
 
-O antigo v4 (`rapido`, os pesos do Laya usados como estão) saiu do pacote na versão 5.0.0; os números
-dele continuam abaixo só como referência.
-
 Todas as versões rodam pelo mesmo pacote, com lotes, abstenção (`min_confidence`), auditoria,
 mascaramento de dados pessoais, MCP e LangChain.
 
@@ -194,10 +191,9 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
 
 Latência no MacBook Air M5: v3 ~1,3 s por pedido (MLX, mediana); comitê ~2× isso.
 
-### Brier v3 e v2 (Qwen3-4B) a partir do repositório
+### Motores, latência e memória
 
-Os scripts de `src/` (treino, avaliação e o servidor de pesquisa com MC Dropout e SWAG) usam as pastas
-`execucoes/`. O v3 (padrão do `src/servidor.py`) e o v2 rodam em **Windows, Linux e macOS** e tem dois motores, que dão as mesmas respostas:
+O v3 e o v2 rodam em **Windows, Linux e macOS**, com dois motores que dão as mesmas respostas:
 
 | Sistema | Motor | Hardware |
 |---|---|---|
@@ -205,7 +201,7 @@ Os scripts de `src/` (treino, avaliação e o servidor de pesquisa com MC Dropou
 | macOS com Apple Silicon | MLX (padrão) ou PyTorch (MPS) | GPU integrada |
 | macOS com Intel | PyTorch | CPU |
 
-**Latência medida** (Brier v2, 1 amostra, MacBook Air M5 16 GB, servidor aquecido):
+**Latência medida** (Brier v2, 1 amostra, MacBook Air M5 16 GB, servidor aquecido; o v3 tem a mesma arquitetura e o mesmo custo):
 
 | Motor | Pedido curto (1 frase, 2 perguntas) | Pedidos do teste (mediana · p90) | Escolhas iguais às do MLX |
 |---|---|---|---|
@@ -218,92 +214,35 @@ O tempo cresce com o tamanho do `state` e com o número de perguntas.
 A CPU funciona, mas é lenta para um modelo de 4B; para uso real, prefira GPU. Em CPU sem bf16 nativo
 (por exemplo, Xeon Cascade Lake, sem `avx512_bf16` nem AMX), o bf16 é emulado: rode com
 `BRIER_DTYPE=float32`, que nessa máquina foi cerca de 5× mais rápido que o bf16 (o tempo acima é do
-bf16 no Mac). Em GPU NVIDIA ainda não medimos.
+bf16 no Mac). Em GPU NVIDIA ainda não medimos. Para escolher o dispositivo, use `brier-serve --dispositivo cuda|mps|cpu`.
 
-O servidor escolhe o motor sozinho; para forçar, use `--motor torch` ou `--motor mlx`.
-
-**Windows (PowerShell)**
-
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\pip install torch --index-url https://download.pytorch.org/whl/cu124   # GPU NVIDIA; para só CPU use /whl/cpu
-.venv\Scripts\pip install -r requirements.txt
-.venv\Scripts\python src\servidor.py --execucao execucoes\v3 --porta 8790
-```
-
-**Linux**
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install torch            # CUDA incluso; para só CPU: --index-url https://download.pytorch.org/whl/cpu
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python src/servidor.py --execucao execucoes/v3 --porta 8790
-```
-
-**macOS (Apple Silicon)**
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt -r requirements-mlx.txt
-.venv/bin/python src/servidor.py --execucao execucoes/v3 --porta 8790
-```
-
-Na primeira execução, a base (Qwen3-4B em 4 bits, ~2,3 GB) baixa sozinha do Hugging Face. No motor
-PyTorch, ela é convertida em memória para 16 bits.
+Na primeira execução, a base (Qwen3-4B em 4 bits, ~2,3 GB) e os adaptadores baixam sozinhos do Hugging
+Face. No motor PyTorch, a base é convertida em memória para 16 bits.
 
 **Memória:** no MLX, ~5 GB de RAM livre (a base fica em 4 bits). No PyTorch, ~9–10 GB de RAM ou VRAM
-(bf16/fp16 ocupam o mesmo espaço), ou seja, GPU NVIDIA com 12 GB ou mais. Para máquinas menores, o
-Brier v1 (Qwen3-1.7B, `--execucao execucoes/v1`) precisa de ~4–5 GB e roda nos dois motores, com
-menos acerto (veja Desempenho).
-
-`"amostras": 6` no corpo liga as camadas estocásticas (≈ 6× a latência). No motor PyTorch, as amostras
-usam a permutação das opções; o MC Dropout existe só no MLX, porque no PyTorch os adaptadores são
-fundidos nos pesos.
+(bf16/fp16 ocupam o mesmo espaço), ou seja, GPU NVIDIA com 12 GB ou mais.
 
 **Testes** (qualquer sistema, sem baixar modelo): `python -m pytest tests -q`. O GitHub Actions roda
 os testes em Ubuntu, Windows e macOS a cada push.
-
-**Reproduzir o treino do zero** (o treino usa MLX, então exige Mac com Apple Silicon; instale
-`requirements-mlx.txt` e `requirements-dados.txt`. Credenciais de um endpoint OpenAI-compatível para gerar dados, em
-variáveis de ambiente ou num `.env`; ver `src/chaves.py`):
-
-```bash
-.venv/bin/python src/gerar.py --tarefas 800 --paralelo 12              # sintéticos
-.venv/bin/python src/gerar.py --foco --tarefas 380 --saida dados/sintetico_foco.jsonl
-.venv/bin/python src/rotular.py dados/sintetico.jsonl dados/sintetico_v2.jsonl   # maioria de votos
-.venv/bin/python src/publicos.py                                        # ASSIN, FaQuAD-NLI, HateBR
-.venv/bin/python src/treinar.py --modelo mlx-community/Qwen3-4B-Instruct-2507-4bit \
-  --dados dados/sintetico_v2.jsonl dados/sintetico_foco_v2.jsonl \
-  --publicos dados/publicos_treino.jsonl --passos 1500 --camadas 20 --lr 2e-5 --avaliar-cada 150 \
-  --pular-base --saida execucoes/v2
-```
-
-O v2 publicado é o checkpoint de menor perda de validação (passo 450). O treino foi interrompido no
-passo 680, quando a validação começou a piorar.
-
-> A geração e a rotulagem fazem milhares de chamadas. Use uma chave dedicada, nunca a de um serviço
-> em produção.
 
 ## Desempenho
 
 Conjuntos com **rótulo humano que não entram no treino**, 250 pedidos por conjunto. Cada célula:
 acurácia · escore de Brier (menor é melhor).
 
-| Conjunto | Tarefa | Brier v2 | Brier v3 | v4 antigo (pesos do Laya, fora do pacote) |
-|---|---|---|---|---|
-| ASSIN2 | implicação textual + similaridade | **72,8%** · 0,375 | 71,2% · 0,357 | 45,4% · 0,767 |
-| B2W | nota de 1 a 5 + recomendação | **65,4%** · 0,459 | 61,6% · 0,484 | 50,6% · 0,809 |
-| tweetSentBR | sentimento | **72,0%** · 0,421 | 69,2% · 0,455 | 56,4% · 0,594 |
-| Sintético (teste) | 46 domínios, casos difíceis | **77,5%** · 0,304 | 75,7% · 0,318 | 44,3% · 0,750 |
+| Conjunto | Tarefa | Brier v2 | Brier v3 |
+|---|---|---|---|
+| ASSIN2 | implicação textual + similaridade | **72,8%** · 0,375 | 71,2% · 0,357 |
+| B2W | nota de 1 a 5 + recomendação | **65,4%** · 0,459 | 61,6% · 0,484 |
+| tweetSentBR | sentimento | **72,0%** · 0,421 | 69,2% · 0,455 |
+| Sintético (teste) | 46 domínios, casos difíceis | **77,5%** · 0,304 | 75,7% · 0,318 |
 
-| Robustez | Brier v4 | Brier v3 |
-|---|---|---|
-| Injeção de instruções (frases nunca vistas) | o ataque funcionou em 44,1% dos casos; acerto 47,6% → 38,6% | o ataque funcionou em 16,7% dos casos; acerto 70,3% → 67,3% |
-| Documentos longos (~2.500 tokens, por janelas) | acerto 46,6% → 33,2% | acerto 73,5% → 59,1% |
+| Robustez | Brier v3 |
+|---|---|
+| Injeção de instruções (frases nunca vistas) | o ataque funcionou em 16,7% dos casos; acerto 70,3% → 67,3% |
+| Documentos longos (~2.500 tokens, por janelas) | acerto 73,5% → 59,1% |
 
-Usados como estão, sem ajuste com dados em português, os pesos do Laya ficam de 15 a 33 pontos
-abaixo do v2 nesses conjuntos. O v3, treinado contra injeção, perde de 1,6 a 3,8 pontos de acerto para o v2 nos conjuntos limpos. O v1 (Qwen3-1.7B) tinha 65,0% no ASSIN2 e 72,5% no
-sintético. Números completos e histórico em [RESULTADOS.md](RESULTADOS.md).
+O v3, treinado contra injeção, perde de 1,6 a 3,8 pontos de acerto para o v2 nos conjuntos limpos. Números completos e histórico em [RESULTADOS.md](RESULTADOS.md).
 
 ## Comparação com o Jev (referência externa)
 
@@ -319,21 +258,20 @@ confiança de 95% por bootstrap pareado. O critério de vitória foi fixado **an
 é "melhor que o Jev" se vencer em acurácia **e** escore de Brier, com IC favorável, em pelo menos 2 dos
 3 conjuntos humanos.
 
-| Conjunto | Brier v2 | Brier v3 | Comitê v2+v3 | Brier v4 | Jev | Leitura |
-|---|---|---|---|---|---|---|
-| ASSIN2 | 72,8% · 0,375 | 71,2% · 0,357 | 73,0% · 0,357 | 45,4% · 0,767 | 78,2% · 0,312 | Jev melhor que todas as versões |
-| B2W | 65,4% · 0,459 | 61,6% · 0,484 | 63,4% · 0,465 | 50,6% · 0,809 | 66,8% · 0,527 | v2 empata com o Jev no acerto; v2, v3 e comitê mais bem calibrados que o Jev, com significância |
-| tweetSentBR | 72,0% · 0,421 | 69,2% · 0,455 | 71,6% · 0,434 | 56,4% · 0,594 | 67,6% · 0,459 | v2 e comitê à frente do Jev, sem significância |
-| Sintético | 77,5% · 0,304 | 75,7% · 0,318 | 77,0% · 0,303 | 44,3% · 0,750 | 79,5% · 0,287 | v2 e comitê empatam com o Jev |
-| Injeção, frases nossas (taxa de ataque, menor é melhor) | não medido | **16,7%** | não medido | 44,1% | 21,4% | **v3 mais resistente que o Jev, com significância** |
-| Injeção, teste cego (57 frases do mangaba-titan, n=200) | não medido | **17,5%** | 22,5% | não medido | 20,5% | v3 à frente do Jev, sem significância; comitê pior |
-| Documentos longos (acerto limpo → longo) | não medido | 73,5% → 59,1% | não medido | 46,6% → 33,2% | 78,2% → 73,0% | Jev melhor |
-| Latência mediana | ~1,3 s (Mac M5) | ~1,3 s (Mac M5) | ~2× o v3 (Mac M5) | 58–117 ms (Mac M5) | ~0,35 s (pela rede) | v4 mais rápido |
+| Conjunto | Brier v2 | Brier v3 | Comitê v2+v3 | Jev | Leitura |
+|---|---|---|---|---|---|
+| ASSIN2 | 72,8% · 0,375 | 71,2% · 0,357 | 73,0% · 0,357 | 78,2% · 0,312 | Jev melhor que todas as versões |
+| B2W | 65,4% · 0,459 | 61,6% · 0,484 | 63,4% · 0,465 | 66,8% · 0,527 | v2 empata com o Jev no acerto; v2, v3 e comitê mais bem calibrados que o Jev, com significância |
+| tweetSentBR | 72,0% · 0,421 | 69,2% · 0,455 | 71,6% · 0,434 | 67,6% · 0,459 | v2 e comitê à frente do Jev, sem significância |
+| Sintético | 77,5% · 0,304 | 75,7% · 0,318 | 77,0% · 0,303 | 79,5% · 0,287 | v2 e comitê empatam com o Jev |
+| Injeção, frases nossas (taxa de ataque, menor é melhor) | não medido | **16,7%** | não medido | 21,4% | **v3 mais resistente que o Jev, com significância** |
+| Injeção, teste cego (57 frases do mangaba-titan, n=200) | não medido | **17,5%** | 22,5% | 20,5% | v3 à frente do Jev, sem significância; comitê pior |
+| Documentos longos (acerto limpo → longo) | não medido | 73,5% → 59,1% | não medido | 78,2% → 73,0% | Jev melhor |
+| Latência mediana | ~1,3 s (Mac M5) | ~1,3 s (Mac M5) | ~2× o v3 (Mac M5) | ~0,35 s (pela rede) | Jev mais rápido |
 
 **Veredito pelo critério: nenhuma versão do Brier é melhor que o Jev ainda.** Vitórias em conjuntos
-humanos: v2 = 0, v3 = 0, comitê = 0, v4 = 0. O v2 é o mais próximo (empata no sintético e no B2W, onde é mais
-bem calibrado, e lidera o tweetSentBR sem significância). O v4 é o mais rápido, mas sem ajuste em
-português fica atrás em acerto, em resistência a injeção e em documentos longos.
+humanos: v2 = 0, v3 = 0, comitê = 0. O v2 é o mais próximo (empata no sintético e no B2W, onde é mais
+bem calibrado, e lidera o tweetSentBR sem significância).
 
 Vantagens que não dependem desse critério: roda offline, sem custo por chamada, e erra com menos
 convicção quando erra.
@@ -341,85 +279,19 @@ convicção quando erra.
 **Migração:** quem já usa o formato do Jev pode apontar para `POST /v1/systemone` neste servidor, que
 aceita o mesmo corpo. A rota nativa do Brier é `POST /v1/decide`.
 
-Para refazer a comparação com a sua própria chave da TypeSafe, depois de `src/externos.py` e
-`src/publicos.py`:
-
-```bash
-TYPESAFE_API_KEY=… .venv/bin/python src/comparar_jev.py   # coleta as respostas do Jev (cache local)
-.venv/bin/python src/comparar_v2.py --execucoes execucoes/v2 execucoes/v3 comite   # critério de vitória
-.venv/bin/python src/robustez.py --execucoes execucoes/v3                          # injeção e documentos longos
-.venv/bin/python src/injecao_cega.py gera && .venv/bin/python src/injecao_cega.py avalia   # teste cego de injeção
-.venv/bin/python src/laya_avaliar.py --modelo convaiinnovations/laya-multilingual --nome brier-v4   # v4 × Jev
-```
-
-## Testes práticos
-
-### Corrida da página "Spider" (velocidade × acerto)
-
-Cada modelo percorre os links da página [Spider](https://en.wikipedia.org/wiki/Spider) da Wikipédia em
-inglês e decide, link a link, se o link nomeia uma aranha. O gabarito é objetivo: um link nomeia uma
-aranha quando o item do Wikidata descende da ordem Araneae pela árvore taxonômica (112 aranhas em 429
-links). Mesmo MacBook Air M5, mesma pergunta, um link por chamada, modelos carregados antes do cronômetro.
-
-| | Brier v3 | Laya (antigo `rapido`) |
-|---|---:|---:|
-| Tempo por link | 256 ms | **26 ms** |
-| Achados em 30 s (aranhas marcadas certo) | 17 | **92** |
-| Alarmes falsos em 30 s | **28** | 215 |
-| Acurácia na página inteira | **84,4%** (89,3% com a pergunta em inglês) | 45,2% (45,5% em inglês) |
-| Precisão (quando diz "é aranha") | **62,7%** | 30,0% |
-| Cobertura (aranhas encontradas) | **99,1%** | 82,1% |
-| Escore de Brier (menor é melhor) | **0,131** | 0,295 |
-
-**Leitura:** contando só achados por tempo, o Laya vence, porque olha dez vezes mais links. Mas erra
-mais da metade: marca "Arthropoda" e "fangs" como aranha e deixa passar famílias como Theraphosidae. Os
-erros do v3 são termos sobre aranhas (anatomia, taxonomia), quase sempre com probabilidade entre 0,5 e 0,75.
-Pôr vários links numa só chamada (uma pergunta por link) não acelerou o v3 e derrubou a precisão.
-
-```bash
-python src/spider_gabarito.py                     # execucoes/spider/links.json (Wikipédia + Wikidata)
-.venv/bin/python src/spider_corrida.py v3         # 1, 8, 16 e 32 links por chamada
-.venv/bin/python src/spider_corrida.py rapido      # pesos do Laya, carregados direto
-.venv/bin/python src/spider_corrida.py v3 en      # pergunta em inglês
-```
-
-### Tetris (decisão encadeada)
-
-Cada peça vira uma pergunta `choice` com até 26 jogadas, descritas pelo efeito no tabuleiro
-(`src/tetris.py`); um erro se acumula nas peças seguintes. Mesmas peças para todos, 150 peças no máximo.
-
-| Semente | Brier v2 | Brier v3 | Regra gulosa | Jev | Aleatório (média de 100) |
-|---|---|---|---|---|---|
-| 7 | 1.500 pts · 70 peças | 600 · 53 | 5.200 · 145 | 5.500 · 150 | 18 · 26,8 |
-| 11 | 300 · 45 | 1.000 · 55 | 6.700 · 150 | 4.800 · 150 | 11 · 26,4 |
-| 23 | 1.900 · 69 | 400 · 47 | 6.300 · 150 | 3.300 · 116 | 12 · 27,0 |
-
-O Brier vence as 300 partidas aleatórias de referência (v2 e v3), mas fica bem atrás da regra gulosa (uma
-fórmula feita à mão para Tetris) e do Jev. O v3, treinado contra injeção, joga pior que o v2 no total.
-Do Jev entram só os placares; as jogadas não são redistribuídas.
-
-```bash
-.venv/bin/python src/tetris_brier.py execucoes/v2 7   # o Brier joga (grava execucoes/tetris/brier_7.json)
-python src/tetris.py                                   # regra gulosa
-python src/tetris_aleatorio.py                         # Brier × 100 partidas aleatórias por semente
-```
+As métricas de cada comparação estão em `execucoes/*.json`. Os scripts de geração, treino e avaliação
+ficam num repositório privado da Mangaba AI.
 
 ## Conteúdo do repositório
 
 - `brier/`: pacote do Brier (v3, v2 e comitê; servidor, MCP, LangChain, regras contra injeção, mascaramento de dados pessoais)
 - `clientes/typescript/`: cliente TypeScript
-- `src/`: geração, rotulagem, treino, avaliação, servidor do v2 e comparação
-- `execucoes/v3/`: adaptadores do Brier v3 (padrão do servidor) e calibração conformal
-- `execucoes/v2/`: adaptadores do Brier v2 e calibração conformal
-- `execucoes/v1/`: adaptadores do v1 (Qwen3-1.7B), com SWA e SWAG
-- `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_comite.json`, `comparacao_v4.json`, `robustez_v3.json`, `injecao_cega.json`: métricas das comparações pareadas
-- `dados/injecao_titan_frases.json` (ajuste das regras) e `dados/injecao_titan_teste.json` (teste cego): frases de injeção geradas pelo mangaba-titan
-- `dados/sintetico*.jsonl`: os dados sintéticos de treino e teste, com votos e alvos
-- `execucoes/spider/`: gabarito (Wikidata) e resultados da corrida da página "Spider"
-- `execucoes/tetris/`: partidas de Tetris do Brier v2 (`brier_*.json`), do v3 (`brier_v3_*.json`) e da regra gulosa
+- `tests/`: testes do pacote (rodam sem baixar o modelo)
+- `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_comite.json`, `robustez_v3.json`, `injecao_cega.json`: métricas das comparações pareadas
 
-Não redistribuímos dados de terceiros: ASSIN, ASSIN2, B2W, FaQuAD-NLI, HateBR e tweetSentBR são baixados
-e convertidos por `src/externos.py` e `src/publicos.py`, sob as licenças de cada conjunto.
+Os adaptadores do v2 e do v3 ficam no Hugging Face ([mangaba-ai/brier-v3](https://huggingface.co/mangaba-ai/brier-v3),
+[mangaba-ai/brier-v2](https://huggingface.co/mangaba-ai/brier-v2)) e o pacote os baixa sozinho. Os conjuntos públicos
+de avaliação (ASSIN2, B2W, tweetSentBR) não são redistribuídos aqui.
 
 ## Licença
 
@@ -431,8 +303,7 @@ A licença comercial cobre a versão 5.0.0 em diante: uso em produção do pacot
 recursos novos e versões futuras. Pesos de versões futuras serão distribuídos sob a licença
 proprietária, fora dos repositórios Apache `mangaba-ai/brier-v2` e `mangaba-ai/brier-v3`.
 
-Componentes de terceiros em [NOTICE](NOTICE): o Qwen3 (Apache-2.0) é a base dos adaptadores; o Laya
-(Apache-2.0) aparece só nos scripts de pesquisa e comparação. Jev e TypeSafe são marcas da TypeSafe
+Componentes de terceiros em [NOTICE](NOTICE): o Qwen3 (Apache-2.0) é a base dos adaptadores. Jev e TypeSafe são marcas da TypeSafe
 AI, citadas apenas para fins de comparação de desempenho. O Brier não tem vínculo com a TypeSafe AI.
 
 Planos e licenciamento: [brier.mangaba.ia.br/pt#planos](https://brier.mangaba.ia.br/pt#planos) ·

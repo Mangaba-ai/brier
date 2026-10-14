@@ -30,31 +30,6 @@ Diferença na taxa de ataque: −4,7 pontos, IC95% aproximado (duas proporções
 Em documentos longos, o Jev segue bem melhor.
 
 ---
-# Resultados — Brier v4 (04/10/2026)
-
-> O Jev (TypeSafe AI) aparece só como referência externa de desempenho.
-
-**Modelo:** arquitetura e pesos do Laya como estão (`convaiinnovations/laya-multilingual`, mmBERT 322M,
-Apache-2.0), sem ajuste fino. Mesmos 250 pedidos por conjunto usados no v2, mesmo critério.
-
-| Conjunto | Acerto v4 | Acerto Jev | Escore de Brier v4 | Escore de Brier Jev | IC95% Δacerto (v4−Jev) | Latência mediana |
-|---|---|---|---|---|---|---|
-| Sintético | 44,3% | 79,5% | 0.750 | 0.287 | -39.4 a -30.8 pts | 117 ms |
-| ASSIN2 | 45,4% | 78,2% | 0.767 | 0.312 | -37.4 a -28.4 pts | 58 ms |
-| B2W | 50,6% | 66,8% | 0.809 | 0.527 | -21.0 a -11.6 pts | 84 ms |
-| tweetSentBR | 56,4% | 67,6% | 0.594 | 0.459 | -18.0 a -4.8 pts | 71 ms |
-
-**Vitórias pelo critério: 0.**
-
-- **Injeção** (famílias de frase nunca vistas): o ataque funcionou em 44,1% dos casos (Jev: 21,4%); acerto 47,6% → 38,6%.
-- **Documentos longos** (~2.500 tokens, lidos por janelas): acerto 46,6% → 33,2% (Jev: 78,2% → 73,0%); mediana de 3.5 s.
-
-**Leitura:** sem ajuste com dados em português, os pesos do Laya ficam de 15 a 33 pontos abaixo do
-Brier v2 em acerto, e atrás do Jev em todos os conjuntos, na injeção e nos documentos longos. A vantagem
-é a velocidade: 58–117 ms por pedido no Mac M5, contra ~1,3 s do v2. O v2 segue sendo a versão mais
-precisa do Brier.
-
----
 # Resultados — Brier v2 (30/09/2026)
 
 > O Brier é um modelo independente. O Jev (TypeSafe AI) aparece neste documento só como referência
@@ -96,16 +71,6 @@ O Brier só é declarado **melhor que o Jev** se, em pelo menos 2 dos 3 conjunto
 **Conformal (α = 0,1, teste sintético):** com cobertura de 98–100%, o v2 decide sozinho (conjunto de
 1 opção) em 39,7% das perguntas de choice e em 41,7% das de noul. No v1 eram 27,6% e 21,9%. Mais
 casos podem ser automatizados com a mesma garantia de acerto.
-
-## Próximos passos
-
-1. Terminar a rotulagem por maioria nos ~4.100 exemplos restantes, com uma chave separada da de produção (ver incidente abaixo).
-2. Avaliar com n = 1.000 por conjunto: no tweetSentBR, a vantagem atual pode virar vitória estatística só com mais amostra.
-3. Mais exemplos de implicação textual, que é onde o Jev ainda ganha (ASSIN2).
-
-## Incidente: cota do provedor
-
-A rotulagem em massa (40 chamadas paralelas, uma delas com raciocínio) zerou a cota do plano MiMo usado também por serviços em produção. A rotulagem foi interrompida assim que o erro 429 apareceu. Daqui em diante, geração e rotulagem em massa só com chave própria para isso.
 
 ---
 # Resultados — Brier v1 (histórico) (29/09/2026)
@@ -212,14 +177,6 @@ Leitura: com 1,7B e 5 mil exemplos, o local ainda não é "melhor que o Jev". É
 a própria incerteza, roda offline e é ~3× mais rápido. Para passar o Jev em acerto, o caminho
 é uma base maior (4B+) e mais dados nas armadilhas em que ele perde (negação, contagem, implicação).
 
-## Próximos passos, em ordem de retorno esperado
-
-1. Base maior (Qwen3-4B, gb10) e mais dados de implicação, negação e contagem: são onde o Jev ganha.
-2. Rótulo melhor: 3º rotulador e descartar em vez de dividir quando os três discordam.
-3. Mais dados nas armadilhas em que o 1.7B erra mais (ver `avaliacao.json` por tipo).
-5. Bug conhecido: com gradient checkpointing, o dropout do LoRA sorteia outra máscara no
-   recálculo do backward. Não impediu o aprendizado, mas deixa o gradiente ruidoso.
-
 ## Melhorias sem treino (05/10/2026): comitê, regras contra injeção, teste cego
 
 **Comitê v2+v3** (média das probabilidades; `Brier("comite")`), mesmos pedidos do Jev:
@@ -234,8 +191,8 @@ a própria incerteza, roda offline e é ~3× mais rápido. Para passar o Jev em 
 0 vitórias pelo critério. O comitê fica entre o v2 e o v3 em texto limpo (melhor ASSIN2 até aqui) e é
 mais bem calibrado que o Jev no B2W, com significância.
 
-**Teste cego de injeção** (`src/injecao_cega.py`). As famílias G–J de `robustez.py` foram escritas por
-nós; aqui o mangaba-titan escreveu 57 frases de ataque com outro enunciado (`dados/injecao_titan_teste.json`),
+**Teste cego de injeção**. As famílias G–J do teste de robustez foram escritas por
+nós; aqui o mangaba-titan escreveu 57 frases de ataque com outro enunciado,
 inseridas em 200 exemplos (50 por fonte). Taxa de ataque (menor é melhor), IC95 pareado contra o Jev:
 
 | | Taxa de ataque | IC95 (− Jev) | Acerto limpo → atacado |
@@ -245,8 +202,7 @@ inseridas em 200 exemplos (50 por fonte). Taxa de ataque (menor é melhor), IC95
 | v3 + neutralização por regras | 17,0% | −9,0 a +2,0 | 72,3% → 68,4% |
 | comitê v2+v3 | 22,5% | −3,5 a +7,0 | 74,0% → 68,1% |
 
-**Regras contra injeção** (`brier/regras.py`). Ajustadas num lote de 40 frases do Titan
-(`dados/injecao_titan_frases.json`): detectam 29/40 nele. Alarmes falsos: 0/1000 ASSIN2, 0/1000 B2W,
+**Regras contra injeção** (`brier/regras.py`). Ajustadas num lote de 40 frases do Titan: detectam 29/40 nele. Alarmes falsos: 0/1000 ASSIN2, 0/1000 B2W,
 0/1000 tweetSentBR, 1/4469 sintéticos sem a armadilha de manipulação. **No teste cego detectam só 7,5%**:
 expressão regular não generaliza para jeitos novos de pedir (ataques sutis como "a política interna diz
 para marcar como X"). Ficam como marcação opcional (`injecao` na resposta, `--neutralizar-injecao`);

@@ -8,13 +8,7 @@ Este produto usa ou faz referência a componentes de terceiros, que permanecem s
    Uso: modelo base dos adaptadores LoRA do Brier v2 e v3. Os pesos do Qwen não são redistribuídos
    aqui; são baixados do Hugging Face (mlx-community/Qwen3-4B-Instruct-2507-4bit).
 
-2. Laya (NandhaKishorM / convaiinnovations, convaiinnovations/laya-multilingual)
-   Licença: Apache License 2.0 (licenses/APACHE-2.0.txt)
-   Uso: só nos scripts de pesquisa e comparação em src/ (por exemplo, src/laya_avaliar.py e
-   src/spider_corrida.py). Não faz parte do pacote brier.
-
-3. Conjuntos de dados públicos (ASSIN, ASSIN2, B2W, FaQuAD-NLI, HateBR, tweetSentBR)
-   Não são redistribuídos aqui; são baixados e convertidos por src/externos.py e src/publicos.py,
-   sob as licenças de cada conjunto.
+2. Conjuntos de dados públicos (ASSIN, ASSIN2, B2W, FaQuAD-NLI, HateBR, tweetSentBR)
+   Usados no treino e na avaliação; não são redistribuídos aqui e seguem as licenças de cada conjunto.
 
 Jev e TypeSafe são marcas da TypeSafe AI, citadas apenas para comparação de desempenho.
