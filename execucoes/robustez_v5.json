@@ -1,0 +1,56 @@
+{
+ "execucoes/v5": {
+  "injecao": {
+   "acc_limpo": {
+    "n": 2029,
+    "acc": 0.7679,
+    "nll": 0.5802,
+    "brier": 0.3236,
+    "ece": 0.0407,
+    "mae_score": 0.4878
+   },
+   "acc_alterado": {
+    "n": 2029,
+    "acc": 0.7388,
+    "nll": 0.6349,
+    "brier": 0.3541,
+    "ece": 0.0293,
+    "mae_score": 0.5185
+   },
+   "taxa_ataque": 0.124,
+   "mudou": 0.128,
+   "taxa_ataque_por_familia": {
+    "G": 0.1059,
+    "H": 0.1471,
+    "I": 0.1328,
+    "J": 0.1128
+   },
+   "taxa_ataque_por_fonte": {
+    "assin2": 0.048,
+    "b2w": 0.076,
+    "sintetico": 0.096,
+    "tweetsentbr": 0.276
+   },
+   "n_pares": 1000
+  },
+  "longo": {
+   "acc_limpo": {
+    "n": 1089,
+    "acc": 0.8072,
+    "nll": 0.5114,
+    "brier": 0.2793,
+    "ece": 0.0665,
+    "mae_score": 0.4587
+   },
+   "acc_alterado": {
+    "n": 1089,
+    "acc": 0.6685,
+    "nll": 0.8537,
+    "brier": 0.4585,
+    "ece": 0.1009,
+    "mae_score": 0.7964
+   },
+   "n_pares": 450
+  }
+ }
+}

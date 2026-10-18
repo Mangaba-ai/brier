@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brier"
-version = "5.0.0"
-description = "Decisões tipadas e calibradas (choice, score, noul), locais. v3 (Qwen3-4B + LoRA do Brier) por padrão."
+version = "5.1.0"
+description = "Decisões tipadas e calibradas (choice, score, noul), locais. v5 (Qwen3-4B + LoRA do Brier) por padrão."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"

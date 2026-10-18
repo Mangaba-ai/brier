@@ -19,50 +19,52 @@ de pontuação que mede se uma probabilidade bate com a realidade. É isso que o
 - **Licença proprietária da Mangaba AI** a partir da versão 5.0.0 (ver [LICENSE](LICENSE) e [NOTICE](NOTICE)).
   O que foi publicado até a tag `ultima-apache-2.0` (pacote 4.1.0 e os pesos v2 e v3) continua sob
   Apache-2.0. Planos: [brier.mangaba.ia.br/pt#planos](https://brier.mangaba.ia.br/pt#planos).
-- **Local e multiplataforma:** Windows, Linux e macOS, em CPU, GPU NVIDIA ou Apple Silicon. Offline e
-  sem custo por chamada.
+- **Local:** roda nos seus servidores Linux ou Windows, em GPU NVIDIA ou CPU. Offline e sem custo por
+  chamada.
 - **Tipado:** a resposta sempre cabe no tipo pedido, por construção.
 - **Calibrado:** quando diz 80%, acerta perto de 80% das vezes. Isso permite decidir o que automatizar
   e o que mandar para uma pessoa.
 
 ## Versões
 
-| | Brier v2 (mais preciso) | **Brier v3** (recomendada) |
-|---|---|---|
-| Modelo | Qwen3-4B + LoRA treinado pelo Brier em português | v2 retreinado contra injeção de instruções; mais resistente a injeção que o Jev |
-| Aplicações | ![Análise de sentimento](https://img.shields.io/badge/An%C3%A1lise_de_sentimento-f59e0b) ![Avaliações de produto](https://img.shields.io/badge/Avalia%C3%A7%C3%B5es_de_produto-8b5cf6) ![Dados internos](https://img.shields.io/badge/Dados_internos-0ea5e9) ![Auditoria em lote](https://img.shields.io/badge/Auditoria_em_lote-2ea44f) | ![Atendimento no WhatsApp](https://img.shields.io/badge/Atendimento_no_WhatsApp-2ea44f) ![Triagem de chamados](https://img.shields.io/badge/Triagem_de_chamados-0ea5e9) ![E-mail e formulários](https://img.shields.io/badge/E--mail_e_formul%C3%A1rios-06b6d4) ![Proteção contra injeção](https://img.shields.io/badge/Prote%C3%A7%C3%A3o_contra_inje%C3%A7%C3%A3o-e11d48) |
-| Acerto médio nos 3 conjuntos humanos | **70,1%** | 67,3% |
-| Latência por pedido (Mac M5) | ~1,3 s | ~1,3 s |
-| Como rodar | `Brier("v2")` · `brier-serve --modelo v2` | `Brier()` · `brier-serve` |
+| | **Brier v5** (recomendada · padrão) | Brier v3 (reserva) | Brier v2 |
+|---|---|---|---|
+| Modelo | v3 continuado com a parte de treino do B2W e mais passos, treinado em 2× NVIDIA L40S | v2 retreinado contra injeção de instruções | Qwen3-4B + LoRA treinado pelo Brier em português |
+| Aplicações | ![Atendimento no WhatsApp](https://img.shields.io/badge/Atendimento_no_WhatsApp-2ea44f) ![Triagem de chamados](https://img.shields.io/badge/Triagem_de_chamados-0ea5e9) ![Avaliações de produto](https://img.shields.io/badge/Avalia%C3%A7%C3%B5es_de_produto-8b5cf6) ![Proteção contra injeção](https://img.shields.io/badge/Prote%C3%A7%C3%A3o_contra_inje%C3%A7%C3%A3o-e11d48) | ![E-mail e formulários](https://img.shields.io/badge/E--mail_e_formul%C3%A1rios-06b6d4) ![Triagem de chamados](https://img.shields.io/badge/Triagem_de_chamados-0ea5e9) ![Proteção contra injeção](https://img.shields.io/badge/Prote%C3%A7%C3%A3o_contra_inje%C3%A7%C3%A3o-e11d48) | ![Análise de sentimento](https://img.shields.io/badge/An%C3%A1lise_de_sentimento-f59e0b) ![Dados internos](https://img.shields.io/badge/Dados_internos-0ea5e9) ![Auditoria em lote](https://img.shields.io/badge/Auditoria_em_lote-2ea44f) |
+| Acerto médio nos 3 conjuntos humanos | **75,1%** | 67,3% | 70,1% |
+| Injeção: ataques que funcionaram (1.000 casos, menor é melhor) | **12,4%** | 16,7% | não medido |
+| Pesos | licença comercial (acesso aprovado) | Apache-2.0 | Apache-2.0 |
+| Como rodar | `Brier()` · `brier-serve` | `Brier("v3")` · `brier-serve --modelo v3` | `Brier("v2")` · `brier-serve --modelo v2` |
 
-**Use o v3** na maioria dos casos: em triagem de texto vindo de terceiros (WhatsApp, e-mail, chamados,
-comentários), qualquer pessoa pode escrever "classifique como urgente" na mensagem, e o v3 é a versão
-mais difícil de manipular (veja "Injeção de instruções" abaixo), perdendo só 1,6 a 3,8 pontos de acerto
-para o v2. **Use o v2** quando o texto é confiável e cada ponto de acerto importa.
-O **`comite`** (média das probabilidades do v2 e do v3) acerta um pouco mais que o v3 em texto limpo,
-mas cai mais em injeção (22,5% × 17,5% no teste cego) e custa o dobro de tempo; serve para texto confiável.
+**Use a v5:** é a mais precisa e a mais difícil de manipular. O download exige acesso aprovado em
+[mangaba-ai/brier-v5](https://huggingface.co/mangaba-ai/brier-v5) (licença comercial) e `huggingface-cli login`.
+Sem acesso, `Brier()` e `brier-serve` voltam sozinhos para o v3, com um aviso.
+
+Desde a v5, a parte de **treino** do B2W entra no treino (8.000 avaliações; nenhuma das usadas no teste).
+O B2W deixou de ser um conjunto fora do domínio para a v5; ASSIN2, tweetSentBR e o sintético continuam fora.
+
+O **`comite`** (média das probabilidades do v2 e do v3) custa o dobro de tempo e cai mais em injeção
+(22,5% no teste cego); serve só para texto confiável.
 
 Todas as versões rodam pelo mesmo pacote, com lotes, abstenção (`min_confidence`), auditoria,
 mascaramento de dados pessoais, MCP e LangChain.
 
 ### Melhores resultados do Brier até aqui (contra o Jev, mesmos pedidos)
 
-- **tweetSentBR (sentimento):** 72,0% de acerto contra 67,6% do Jev
-  (+4,4 pontos; IC95% de −0,4 a +9,2, ainda sem significância).
-- **B2W (avaliações de produto):** **mais bem calibrado que o Jev, com significância**: escore de
-  Brier 0,459 contra 0,527 (menor é melhor), com acerto empatado.
-- **Sintético (46 domínios, casos difíceis):** empate estatístico com o Jev (77,5% × 79,5%).
-- **Injeção de instruções (Brier v3):** a instrução maliciosa mudou a resposta para o que pedia em
-  16,7% dos casos, contra 21,4% do Jev (−4,7 pontos; IC95% aproximado de −8,1 a −1,3, **com
-  significância**), em 1000 casos com 4 famílias de frases escritas por nós e nunca vistas no treino.
-  Num **teste cego** com 57 frases inéditas escritas por outro modelo (mangaba-titan), a vantagem se
-  manteve, mas menor e sem significância: 17,5% contra 20,5% (n=200; IC95% de −8,5 a +2,0).
+- **B2W (avaliações de produto):** a v5 **vence o Jev em acerto e em escore de Brier, com significância**:
+  75,8% × 66,8% (IC95% de +4,6 a +13,6 pontos) e 0,335 × 0,527 (menor é melhor).
+- **ASSIN2 (implicação textual):** a v5 empata com o Jev: 78,6% × 78,2%.
+- **tweetSentBR (sentimento):** v5 70,8% e v2 72,0%, contra 67,6% do Jev, ainda sem significância.
+- **Injeção de instruções:** com a v5, a instrução maliciosa mudou a resposta para o que pedia em
+  **12,4%** dos 1.000 casos (v3: 16,7%; Jev: 21,4%). Num **teste cego** com 57 frases inéditas escritas por
+  outro modelo (mangaba-titan), 15,0% contra 20,5% do Jev (n=200; IC95% de −11,0 a −0,5 pontos, **com
+  significância**).
 - **Custo e privacidade:** roda offline, sem custo por chamada e sem mandar texto para fora.
 
 ```bash
-pip install "brier[mac] @ git+https://github.com/Mangaba-ai/brier"   # Mac com Apple Silicon (MLX)
-pip install "brier @ git+https://github.com/Mangaba-ai/brier"        # Windows e Linux (PyTorch)
-brier-serve --porta 8790          # Brier v3; pesos baixados de huggingface.co/mangaba-ai/brier-v3
+pip install "brier @ git+https://github.com/Mangaba-ai/brier"
+huggingface-cli login             # com acesso aprovado à v5
+brier-serve --porta 8790          # Brier v5 (sem acesso aprovado, v3)
 ```
 
 O uso das versões a partir da 5.0.0 depende de licença da Mangaba AI ([LICENSE](LICENSE);
@@ -110,7 +112,7 @@ No exemplo acima, o Brier v3 (padrão) respondeu `setor` = `suporte` com 84%, `r
 `financeiro` com 1%; `raiva` = 1,82 (perto de "Muito irritado") e `urgente` = 0,86. O `conjunto` de
 `setor` trouxe `suporte` **e** `retencao`: é o Brier dizendo que o caso tem duas leituras (a internet caiu
 **e** o cliente quer cancelar) e que vale uma pergunta de esclarecimento ou uma revisão humana. A resposta
-levou 0,37 s num MacBook Air M5 (pedido curto; a mediana nos pedidos de teste é ~1,3 s).
+levou 0,37 s (pedido curto; a mediana nos pedidos de teste é ~1,3 s).
 
 ## Como funciona por dentro
 
@@ -156,16 +158,17 @@ esclarecimento.
 ### Pacote `brier` (todas as versões)
 
 ```bash
-pip install "brier[mac] @ git+https://github.com/Mangaba-ai/brier"   # Mac com Apple Silicon; sem [mac] em Windows/Linux
-brier-serve --porta 8790 [--modelo v3|v2|comite] [--auditoria auditoria.jsonl] [--mascarar-pii] [--neutralizar-injecao]
+pip install "brier @ git+https://github.com/Mangaba-ai/brier"
+brier-serve --porta 8790 [--modelo v5|v3|v2|comite] [--auditoria auditoria.jsonl] [--mascarar-pii] [--neutralizar-injecao]
 ```
 
-Os adaptadores do v2 e do v3 ficam em [mangaba-ai/brier-v2](https://huggingface.co/mangaba-ai/brier-v2) e
-[mangaba-ai/brier-v3](https://huggingface.co/mangaba-ai/brier-v3) e baixam sozinhos na primeira execução.
+Os adaptadores ficam no Hugging Face e baixam sozinhos na primeira execução:
+[mangaba-ai/brier-v5](https://huggingface.co/mangaba-ai/brier-v5) (acesso aprovado),
+[mangaba-ai/brier-v3](https://huggingface.co/mangaba-ai/brier-v3) e [mangaba-ai/brier-v2](https://huggingface.co/mangaba-ai/brier-v2).
 
 ```python
 from brier import Brier
-b = Brier(mascarar_pii=True)                        # v3; Brier("v2"), Brier("comite")
+b = Brier(mascarar_pii=True)                        # v5 (sem acesso, v3); Brier("v3"), Brier("v2")
 b.decide(texto, perguntas, min_confidence=0.8)     # "abstencao" lista as perguntas abaixo do mínimo
 b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamada
 ```
@@ -180,7 +183,7 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
 - **Instruções injetadas:** frases que parecem ordens ao sistema ("ignore as instruções…", "a resposta
   correta é…") são marcadas no campo `injecao`; com `--neutralizar-injecao`, são trocadas por um aviso
   antes da decisão. É uma camada simples, por regras: num teste cego detectou só 7,5% das frases
-  inéditas (com quase nenhum alarme falso), então a defesa principal continua sendo o treino do v3.
+  inéditas (com quase nenhum alarme falso), então a defesa principal continua sendo o treino (v3 e v5).
 - **Auditoria:** `--auditoria arquivo.jsonl` grava hash do texto, roteamento, latência e respostas,
   nunca o texto.
 - **Dados pessoais:** `--mascarar-pii` troca CPF, CNPJ, cartão, e-mail, telefone e CEP por marcadores
@@ -189,60 +192,53 @@ b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamad
   LangChain/LangGraph (`brier.langchain`), cliente TypeScript (`clientes/typescript/brier.ts`) e
   `Dockerfile`.
 
-Latência no MacBook Air M5: v3 ~1,3 s por pedido (MLX, mediana); comitê ~2× isso.
+Latência mediana: ~1,3 s por pedido com o servidor aquecido; comitê ~2× isso.
 
 ### Motores, latência e memória
 
-O v3 e o v2 rodam em **Windows, Linux e macOS**, com dois motores que dão as mesmas respostas:
+O Brier roda em **Linux e Windows**, em GPU NVIDIA (CUDA) ou CPU, com o motor PyTorch. A v5, o v3 e o
+v2 têm a mesma base e o mesmo custo.
 
-| Sistema | Motor | Hardware |
-|---|---|---|
-| Windows, Linux | PyTorch | GPU NVIDIA (CUDA) ou CPU |
-| macOS com Apple Silicon | MLX (padrão) ou PyTorch (MPS) | GPU integrada |
-| macOS com Intel | PyTorch | CPU |
+**Latência medida** (1 amostra por pedido, servidor aquecido):
 
-**Latência medida** (Brier v2, 1 amostra, MacBook Air M5 16 GB, servidor aquecido; o v3 tem a mesma arquitetura e o mesmo custo):
-
-| Motor | Pedido curto (1 frase, 2 perguntas) | Pedidos do teste (mediana · p90) | Escolhas iguais às do MLX |
-|---|---|---|---|
-| MLX | 0,26 s | 1,3 s · 1,7 s | referência |
-| PyTorch na GPU (MPS, fp16) | 0,24 s | 1,5 s · 2,3 s | 98,6% (1 de 69, num quase empate) |
-| PyTorch na CPU (bf16) | — | ~72 s | 100% |
+| Pedido | Latência |
+|---|---|
+| Curto (1 frase, 2 perguntas) | 0,26 s |
+| Pedidos do teste, mediana | 1,3 s |
+| Pedidos do teste, p90 | 1,7 s |
 
 O tempo cresce com o tamanho do `state` e com o número de perguntas.
 
 A CPU funciona, mas é lenta para um modelo de 4B; para uso real, prefira GPU. Em CPU sem bf16 nativo
 (por exemplo, Xeon Cascade Lake, sem `avx512_bf16` nem AMX), o bf16 é emulado: rode com
-`BRIER_DTYPE=float32`, que nessa máquina foi cerca de 5× mais rápido que o bf16 (o tempo acima é do
-bf16 no Mac). Em GPU NVIDIA ainda não medimos. Para escolher o dispositivo, use `brier-serve --dispositivo cuda|mps|cpu`.
+`BRIER_DTYPE=float32`, que nessa máquina foi cerca de 5× mais rápido que o bf16. Para escolher o
+dispositivo, use `brier-serve --dispositivo cuda|cpu`.
 
 Na primeira execução, a base (Qwen3-4B em 4 bits, ~2,3 GB) e os adaptadores baixam sozinhos do Hugging
-Face. No motor PyTorch, a base é convertida em memória para 16 bits.
+Face. A base é convertida em memória para 16 bits.
 
-**Memória:** no MLX, ~5 GB de RAM livre (a base fica em 4 bits). No PyTorch, ~9–10 GB de RAM ou VRAM
-(bf16/fp16 ocupam o mesmo espaço), ou seja, GPU NVIDIA com 12 GB ou mais.
+**Memória:** ~9–10 GB de RAM ou VRAM (bf16), ou seja, GPU NVIDIA com 12 GB ou mais.
 
 **Testes** (qualquer sistema, sem baixar modelo): `python -m pytest tests -q`. O GitHub Actions roda
-os testes em Ubuntu, Windows e macOS a cada push.
+os testes em Linux e Windows a cada push.
 
 ## Desempenho
 
-Conjuntos com **rótulo humano que não entram no treino**, 250 pedidos por conjunto. Cada célula:
-acurácia · escore de Brier (menor é melhor).
+Conjuntos com **rótulo humano**, separados do treino, 250 pedidos por conjunto (a v5 treinou com a parte de
+treino do B2W, nunca com a de teste). Cada célula: acurácia · escore de Brier (menor é melhor). A v5 foi
+medida numa rodada própria de avaliação, com os mesmos pedidos; os números de v2 e v3 são da rodada anterior.
 
-| Conjunto | Tarefa | Brier v2 | Brier v3 |
-|---|---|---|---|
-| ASSIN2 | implicação textual + similaridade | **72,8%** · 0,375 | 71,2% · 0,357 |
-| B2W | nota de 1 a 5 + recomendação | **65,4%** · 0,459 | 61,6% · 0,484 |
-| tweetSentBR | sentimento | **72,0%** · 0,421 | 69,2% · 0,455 |
-| Sintético (teste) | 46 domínios, casos difíceis | **77,5%** · 0,304 | 75,7% · 0,318 |
+| Conjunto | Tarefa | **Brier v5** | Brier v3 | Brier v2 |
+|---|---|---|---|---|
+| ASSIN2 | implicação textual + similaridade | **78,6%** · 0,301 | 71,2% · 0,357 | 72,8% · 0,375 |
+| B2W | nota de 1 a 5 + recomendação | **75,8%** · 0,335 | 61,6% · 0,484 | 65,4% · 0,459 |
+| tweetSentBR | sentimento | 70,8% · 0,427 | 69,2% · 0,455 | **72,0%** · 0,421 |
+| Sintético (teste) | 46 domínios, casos difíceis | **77,5%** · 0,297 | 75,7% · 0,318 | **77,5%** · 0,304 |
 
-| Robustez | Brier v3 |
-|---|---|
-| Injeção de instruções (frases nunca vistas) | o ataque funcionou em 16,7% dos casos; acerto 70,3% → 67,3% |
-| Documentos longos (~2.500 tokens, por janelas) | acerto 73,5% → 59,1% |
-
-O v3, treinado contra injeção, perde de 1,6 a 3,8 pontos de acerto para o v2 nos conjuntos limpos. Números completos e histórico em [RESULTADOS.md](RESULTADOS.md).
+| Robustez | **Brier v5** | Brier v3 |
+|---|---|---|
+| Injeção de instruções (frases nunca vistas) | o ataque funcionou em **12,4%** dos casos; acerto 76,8% → 73,9% | 16,7%; acerto 70,3% → 67,3% |
+| Documentos longos (~2.500 tokens, por janelas) | acerto 80,7% → 66,9% | acerto 73,5% → 59,1% | Números completos e histórico em [RESULTADOS.md](RESULTADOS.md).
 
 ## Comparação com o Jev (referência externa)
 
@@ -258,20 +254,20 @@ confiança de 95% por bootstrap pareado. O critério de vitória foi fixado **an
 é "melhor que o Jev" se vencer em acurácia **e** escore de Brier, com IC favorável, em pelo menos 2 dos
 3 conjuntos humanos.
 
-| Conjunto | Brier v2 | Brier v3 | Comitê v2+v3 | Jev | Leitura |
-|---|---|---|---|---|---|
-| ASSIN2 | 72,8% · 0,375 | 71,2% · 0,357 | 73,0% · 0,357 | 78,2% · 0,312 | Jev melhor que todas as versões |
-| B2W | 65,4% · 0,459 | 61,6% · 0,484 | 63,4% · 0,465 | 66,8% · 0,527 | v2 empata com o Jev no acerto; v2, v3 e comitê mais bem calibrados que o Jev, com significância |
-| tweetSentBR | 72,0% · 0,421 | 69,2% · 0,455 | 71,6% · 0,434 | 67,6% · 0,459 | v2 e comitê à frente do Jev, sem significância |
-| Sintético | 77,5% · 0,304 | 75,7% · 0,318 | 77,0% · 0,303 | 79,5% · 0,287 | v2 e comitê empatam com o Jev |
-| Injeção, frases nossas (taxa de ataque, menor é melhor) | não medido | **16,7%** | não medido | 21,4% | **v3 mais resistente que o Jev, com significância** |
-| Injeção, teste cego (57 frases do mangaba-titan, n=200) | não medido | **17,5%** | 22,5% | 20,5% | v3 à frente do Jev, sem significância; comitê pior |
-| Documentos longos (acerto limpo → longo) | não medido | 73,5% → 59,1% | não medido | 78,2% → 73,0% | Jev melhor |
-| Latência mediana | ~1,3 s (Mac M5) | ~1,3 s (Mac M5) | ~2× o v3 (Mac M5) | ~0,35 s (pela rede) | Jev mais rápido |
+| Conjunto | **Brier v5** | Brier v2 | Brier v3 | Comitê v2+v3 | Jev | Leitura |
+|---|---|---|---|---|---|---|
+| ASSIN2 | **78,6%** · 0,301 | 72,8% · 0,375 | 71,2% · 0,357 | 73,0% · 0,357 | 78,2% · 0,312 | v5 empata com o Jev; v2, v3 e comitê abaixo |
+| B2W | **75,8%** · 0,335 | 65,4% · 0,459 | 61,6% · 0,484 | 63,4% · 0,465 | 66,8% · 0,527 | **v5 melhor que o Jev em acerto e escore de Brier, com significância** |
+| tweetSentBR | 70,8% · 0,427 | 72,0% · 0,421 | 69,2% · 0,455 | 71,6% · 0,434 | 67,6% · 0,459 | v5, v2 e comitê à frente do Jev, sem significância |
+| Sintético | 77,5% · 0,297 | 77,5% · 0,304 | 75,7% · 0,318 | 77,0% · 0,303 | 79,5% · 0,287 | v5, v2 e comitê empatam com o Jev |
+| Injeção, frases nossas (taxa de ataque, menor é melhor) | **12,4%** | não medido | **16,7%** | não medido | 21,4% | **v5 e v3 mais resistentes que o Jev** (v3 com significância; IC da v5 não calculado nesta bateria) |
+| Injeção, teste cego (57 frases do mangaba-titan, n=200) | **15,0%** | não medido | **17,5%** | 22,5% | 20,5% | **v5 mais resistente, com significância**; v3 à frente sem significância; comitê pior |
+| Documentos longos (acerto limpo → longo) | 80,7% → 66,9% | não medido | 73,5% → 59,1% | não medido | 78,2% → 73,0% | Jev melhor (cai menos) |
+| Latência mediana | ~1,3 s | ~1,3 s | ~1,3 s | ~2× o v3 | ~0,35 s (pela rede) | Jev mais rápido |
 
-**Veredito pelo critério: nenhuma versão do Brier é melhor que o Jev ainda.** Vitórias em conjuntos
-humanos: v2 = 0, v3 = 0, comitê = 0. O v2 é o mais próximo (empata no sintético e no B2W, onde é mais
-bem calibrado, e lidera o tweetSentBR sem significância).
+**Veredito pelo critério: a v5 tem 1 vitória (B2W) das 2 necessárias; ainda não é "melhor que o Jev"
+no geral.** Vitórias em conjuntos humanos: v5 = 1, v2 = 0, v3 = 0, comitê = 0. A v5 empata no ASSIN2 e
+lidera o tweetSentBR sem significância; o B2W entrou no treino da v5 pela parte de treino.
 
 Vantagens que não dependem desse critério: roda offline, sem custo por chamada, e erra com menos
 convicção quando erra.
@@ -284,10 +280,10 @@ ficam num repositório privado da Mangaba AI.
 
 ## Conteúdo do repositório
 
-- `brier/`: pacote do Brier (v3, v2 e comitê; servidor, MCP, LangChain, regras contra injeção, mascaramento de dados pessoais)
+- `brier/`: pacote do Brier (v5, v3, v2 e comitê; servidor, MCP, LangChain, regras contra injeção, mascaramento de dados pessoais)
 - `clientes/typescript/`: cliente TypeScript
 - `tests/`: testes do pacote (rodam sem baixar o modelo)
-- `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_comite.json`, `robustez_v3.json`, `injecao_cega.json`: métricas das comparações pareadas
+- `execucoes/comparacao_v2.json`, `comparacao_v3.json`, `comparacao_comite.json`, `robustez_v3.json`, `injecao_cega.json`, `comparacao_v5.json`, `robustez_v5.json`, `injecao_cega_v5.json`: métricas das comparações pareadas
 
 Os adaptadores do v2 e do v3 ficam no Hugging Face ([mangaba-ai/brier-v3](https://huggingface.co/mangaba-ai/brier-v3),
 [mangaba-ai/brier-v2](https://huggingface.co/mangaba-ai/brier-v2)) e o pacote os baixa sozinho. Os conjuntos públicos

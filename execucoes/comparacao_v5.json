@@ -1,0 +1,207 @@
+{
+ "criterio": "vence se, em >=2 de assin2/b2w/tweetsentbr, IC95% favorável ao Brier em acurácia E escore de Brier",
+ "modelos": {
+  "execucoes/v3": {
+   "conformal": {
+    "choice": 0.9134509205137628,
+    "score": 0.9647271550758686,
+    "noul": 0.940268858026437
+   },
+   "sintetico": {
+    "brier_modelo": {
+     "n": 779,
+     "acc": 0.7522,
+     "brier": 0.3184,
+     "ece": 0.0364
+    },
+    "jev": {
+     "n": 779,
+     "acc": 0.7946,
+     "brier": 0.2866,
+     "ece": 0.0719
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.0732,
+     -0.0116
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0634,
+     0.0021
+    ],
+    "vence": false
+   },
+   "assin2": {
+    "brier_modelo": {
+     "n": 500,
+     "acc": 0.71,
+     "brier": 0.3564,
+     "ece": 0.0915
+    },
+    "jev": {
+     "n": 500,
+     "acc": 0.782,
+     "brier": 0.3119,
+     "ece": 0.0567
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.116,
+     -0.03
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0904,
+     0.0014
+    ],
+    "vence": false
+   },
+   "b2w": {
+    "brier_modelo": {
+     "n": 500,
+     "acc": 0.616,
+     "brier": 0.486,
+     "ece": 0.1678
+    },
+    "jev": {
+     "n": 500,
+     "acc": 0.668,
+     "brier": 0.5274,
+     "ece": 0.1779
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.09,
+     -0.014
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     0.001,
+     0.0849
+    ],
+    "vence": false
+   },
+   "tweetsentbr": {
+    "brier_modelo": {
+     "n": 250,
+     "acc": 0.692,
+     "brier": 0.4566,
+     "ece": 0.1169
+    },
+    "jev": {
+     "n": 250,
+     "acc": 0.676,
+     "brier": 0.4594,
+     "ece": 0.1641
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.032,
+     0.064
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0499,
+     0.0548
+    ],
+    "vence": false
+   },
+   "vitorias_humanas": 0,
+   "melhor_que_jev": false
+  },
+  "execucoes/v5": {
+   "conformal": {
+    "choice": 0.9008163640916163,
+    "score": 0.9583811157310911,
+    "noul": 0.9219004498390017
+   },
+   "sintetico": {
+    "brier_modelo": {
+     "n": 779,
+     "acc": 0.7754,
+     "brier": 0.2968,
+     "ece": 0.0552
+    },
+    "jev": {
+     "n": 779,
+     "acc": 0.7946,
+     "brier": 0.2866,
+     "ece": 0.0719
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.0501,
+     0.0128
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0388,
+     0.0209
+    ],
+    "vence": false
+   },
+   "assin2": {
+    "brier_modelo": {
+     "n": 500,
+     "acc": 0.786,
+     "brier": 0.3014,
+     "ece": 0.0564
+    },
+    "jev": {
+     "n": 500,
+     "acc": 0.782,
+     "brier": 0.3119,
+     "ece": 0.0567
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.038,
+     0.044
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0319,
+     0.0519
+    ],
+    "vence": false
+   },
+   "b2w": {
+    "brier_modelo": {
+     "n": 500,
+     "acc": 0.758,
+     "brier": 0.3347,
+     "ece": 0.0766
+    },
+    "jev": {
+     "n": 500,
+     "acc": 0.668,
+     "brier": 0.5274,
+     "ece": 0.1779
+    },
+    "ic95_acc_brier_menos_jev": [
+     0.046,
+     0.136
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     0.1405,
+     0.2482
+    ],
+    "vence": true
+   },
+   "tweetsentbr": {
+    "brier_modelo": {
+     "n": 250,
+     "acc": 0.708,
+     "brier": 0.4272,
+     "ece": 0.0858
+    },
+    "jev": {
+     "n": 250,
+     "acc": 0.676,
+     "brier": 0.4594,
+     "ece": 0.1641
+    },
+    "ic95_acc_brier_menos_jev": [
+     -0.02,
+     0.08
+    ],
+    "ic95_escore_brier_jev_menos_local": [
+     -0.0224,
+     0.087
+    ],
+    "vence": false
+   },
+   "vitorias_humanas": 1,
+   "melhor_que_jev": false
+  }
+ }
+}

@@ -1,7 +1,10 @@
 """Fachada do Brier: escolhe a versão e acrescenta os recursos de produção.
 
 Versões (parâmetro `modelo`, ou variável de ambiente BRIER_MODELO):
-  - "v3"     (padrão)  Qwen3-4B + LoRA do Brier, treinado também contra injeção de instruções;
+  - "v5"     (padrão)  o v3 continuado com dados do domínio; o mais preciso e o mais resistente a injeção.
+                       Licença comercial: o download exige acesso aprovado no Hugging Face. Sem acesso,
+                       o padrão volta para o v3 com um aviso;
+  - "v3"               Qwen3-4B + LoRA do Brier, treinado também contra injeção de instruções;
   - "v2"               Qwen3-4B + LoRA do Brier, o mais preciso em texto confiável;
   - "comite"           v2 + v3 com a média das probabilidades;
   - uma pasta local ou um repositório do Hugging Face com adaptadores do Brier.
@@ -19,6 +22,7 @@ import os
 import threading
 import time
 import uuid
+import warnings
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -26,11 +30,13 @@ from .pii import mascarar
 from .regras import neutraliza_injecao, procura_injecao
 
 VERSOES = {
+    "v5": ["mangaba-ai/brier-v5"],
     "v3": ["mangaba-ai/brier-v3"],
     "v2": ["mangaba-ai/brier-v2"],
     "comite": ["mangaba-ai/brier-v2", "mangaba-ai/brier-v3"],
 }
-MODELO_PADRAO = os.environ.get("BRIER_MODELO", "v3")
+MODELO_PADRAO = os.environ.get("BRIER_MODELO", "v5")
+RESERVA = "v3"  # usado quando o padrão é o v5 e a conta não tem acesso aos pesos dele
 
 
 def _resolve(nome: str) -> list[str]:
@@ -41,6 +47,13 @@ def _resolve(nome: str) -> list[str]:
         local = Path("execucoes") / r.split("/")[-1].replace("brier-", "")
         out.append(str(local) if r.startswith("mangaba-ai/brier-") and (local / "adaptadores.safetensors").exists() else r)
     return out
+
+
+def _sem_acesso(erro: Exception) -> bool:
+    """Erro de repositório com acesso controlado ou de autenticação no Hugging Face."""
+    nome = type(erro).__name__
+    texto = str(erro)
+    return nome in ("GatedRepoError", "RepositoryNotFoundError") or "401" in texto or "403" in texto or "gated" in texto.lower()
 
 
 def _resumo(resposta: dict) -> dict:
@@ -57,11 +70,21 @@ class Brier:
                  mascarar_pii: bool = False, auditoria: Optional[str] = None,
                  neutralizar_injecao: bool = False, max_state: int = 4096,
                  antes: Optional[Callable] = None, depois: Optional[Callable] = None):
+        from .qwen import MotorQwen  # importado só quando usado: o pacote carrega rápido sem o motor
         self.versao = modelo
         caminhos = _resolve(modelo)
+        try:
+            self.agente = MotorQwen(caminhos, dispositivo=dispositivo, max_state=max_state)
+        except Exception as erro:
+            if modelo != "v5" or not _sem_acesso(erro):
+                raise
+            warnings.warn("Sem acesso aos pesos do Brier v5 (licença comercial; peça acesso em "
+                          "https://huggingface.co/mangaba-ai/brier-v5 e faça `huggingface-cli login`). "
+                          f"Usando o {RESERVA}.", stacklevel=2)
+            self.versao = RESERVA
+            caminhos = _resolve(RESERVA)
+            self.agente = MotorQwen(caminhos, dispositivo=dispositivo, max_state=max_state)
         self.nome_modelo = "+".join(caminhos)
-        from .qwen import MotorQwen  # importado só quando usado: o pacote carrega rápido sem o motor
-        self.agente = MotorQwen(caminhos, dispositivo=dispositivo, max_state=max_state)
         self.mascarar_pii = mascarar_pii
         self.neutralizar_injecao = neutralizar_injecao
         self.auditoria = Path(auditoria) if auditoria else None
@@ -70,7 +93,7 @@ class Brier:
 
     @property
     def rotulo(self) -> str:
-        return {"v3": "brier-3", "v2": "brier-2", "comite": "brier-comite"}.get(self.versao, "brier")
+        return {"v5": "brier-5", "v3": "brier-3", "v2": "brier-2", "comite": "brier-comite"}.get(self.versao, "brier")
 
     # ---------- ganchos
     def _registra(self, ctx: dict, resposta: dict):

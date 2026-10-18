@@ -1,3 +1,39 @@
+# Resultados — Brier v5 (18/10/2026)
+
+**Modelo:** o v3 continuado com a parte de treino do B2W-Reviews01 (8.000 avaliações estratificadas por
+nota; nenhuma das 1.393 usadas em teste) e mais passos: 600 passos de 16 exemplos (mistura: 20% B2W,
+20% públicos, 20% injeção, 40% sintético), lr 1e-5 com aquecimento e cosseno. Treino em PyTorch nas 2
+NVIDIA L40S (~35 min), sobre a mesma base de 4 bits da inferência. Checkpoint escolhido pela média da NLL
+em três validações separadas do teste (sintético, injeção e B2W). Pesos em
+[mangaba-ai/brier-v5](https://huggingface.co/mangaba-ai/brier-v5), com acesso controlado.
+
+**Comparação pareada com o Jev** (mesmos pedidos, IC95% por bootstrap pareado; `execucoes/comparacao_v5.json`):
+
+| Conjunto | v5 | v3 (mesma rodada) | Jev | IC95 acerto (v5 − Jev) | IC95 Brier (Jev − v5) |
+|---|---|---|---|---|---|
+| Sintético (n=779) | 77,5% · 0,297 | 75,2% · 0,318 | 79,5% · 0,287 | −5,0 a +1,3 | −3,9 a +2,1 |
+| ASSIN2 (n=500) | **78,6%** · 0,301 | 71,0% · 0,356 | 78,2% · 0,312 | −3,8 a +4,4 | −3,2 a +5,2 |
+| B2W (n=500) | **75,8%** · 0,335 | 61,6% · 0,486 | 66,8% · 0,527 | **+4,6 a +13,6** | **+14,1 a +24,8** |
+| tweetSentBR (n=250) | 70,8% · 0,427 | 69,2% · 0,457 | 67,6% · 0,459 | −2,0 a +8,0 | −2,2 a +8,7 |
+
+1 vitória pelo critério (B2W); o critério pede 2. Calibração (ECE): v5 0,055 / 0,056 / 0,077 / 0,086
+contra 0,072 / 0,057 / 0,178 / 0,164 do Jev (sintético, ASSIN2, B2W, tweetSentBR).
+
+**Injeção e documentos longos** (`execucoes/robustez_v5.json`, `execucoes/injecao_cega_v5.json`):
+
+| | v5 | v3 | Jev |
+|---|---|---|---|
+| Ataques que funcionaram, 1.000 casos (frases nossas, inéditas) | **12,4%** | 16,7% | 21,4% |
+| Ataques que funcionaram, teste cego (57 frases do mangaba-titan, n=200) | **15,0%** | 17,5% | 20,5% |
+| IC95 no teste cego (v5 − Jev) | **−11,0 a −0,5** | −8,5 a +2,0 | — |
+| Acerto limpo → atacado (1.000 casos) | 76,8% → 73,9% | 70,3% → 67,3% | 74,6% → 69,4% |
+| Documentos longos, acerto limpo → longo | 80,7% → 66,9% | 73,5% → 59,1% | 78,2% → 73,0% |
+
+**Leitura:** a v5 é a melhor versão do Brier em todos os conjuntos menos o tweetSentBR (onde o v2 segue
+1,2 ponto à frente) e a mais resistente a injeção. O B2W deixou de ser fora do domínio para ela. Em
+documentos longos, ainda cai mais que o Jev.
+
+---
 # Resultados — Brier v3 (04/10/2026)
 
 **Modelo:** o v2 (Qwen3-4B + LoRA) retreinado com 25% de exemplos com injeção de instruções e textos
