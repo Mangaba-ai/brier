@@ -46,6 +46,32 @@ O B2W deixou de ser um conjunto fora do domínio para a v5; ASSIN2, tweetSentBR 
 O **`comite`** (média das probabilidades do v2 e do v3) custa o dobro de tempo e cai mais em injeção
 (22,5% no teste cego); serve só para texto confiável.
 
+### Brier-0 (5.2.0): v5 destilado do mangaba-titan, com cascata opcional
+
+O **Brier-0** é a v5 continuada com destilação do mangaba-titan (Qwen3.5-122B-A10B, nos servidores GPU da Mangaba AI).
+O professor responde em duas ordens de opções e a média tira o viés de posição. A destilação só entra em escolha
+e sim/não, onde ele é forte. O download exige acesso aprovado em
+[mangaba-ai/brier-zero](https://huggingface.co/mangaba-ai/brier-zero), que tem a mesma licença comercial da v5.
+
+- **`Brier("zero-local")`**: só os pesos do Brier-0. Roda offline, como as outras versões.
+- **`Brier("zero")`**: cascata. Nas perguntas de escolha e sim/não com confiança abaixo de 0,9 (~36% das perguntas),
+  consulta o professor. **O texto dessas perguntas vai para o endpoint do professor**, que por padrão é o mangaba-titan
+  em `https://llm-gpu.mangaba.ia.br/v1` (configurável por `BRIER_PROFESSOR_URL`, `BRIER_PROFESSOR_MODELO` e
+  `BRIER_PROFESSOR_CHAVE`). Sem chave, ou com o professor fora do ar, responde só o aluno, e o motivo aparece em `cascata.falhas`.
+
+| | Brier-0 cascata | Brier-0 local | v5 | Jev |
+|---|---|---|---|---|
+| Sintético, subconjunto limpo (590) | **92,0%** | 89,3% | 88,6% | 91,5% |
+| Sintético, inteiro (779) | **81,4%** | 79,3% | 77,5% | 79,5% |
+| ASSIN2 | 78,8% | 78,6% | 78,6% | 78,2% |
+| B2W | 74,8% | 75,8% | 75,8% | 66,8% |
+| tweetSentBR | 66,0% | 68,8% | **70,8%** | 67,6% |
+
+- **Subconjunto limpo:** são as perguntas onde os rotuladores concordam. Nas 189 restantes, o ouro é contestado e todos os modelos acertam 42–48%.
+- **Onde a cascata piora:** em avaliações de produto e redes sociais, onde o titan é mais fraco que o aluno. Ali use `zero-local` ou a v5.
+- **Ainda não medidos no Brier-0:** injeção e textos longos.
+- **Calibração:** o ECE do sintético caiu de 0,055 para 0,028.
+
 Todas as versões rodam pelo mesmo pacote, com lotes, abstenção (`min_confidence`), auditoria,
 mascaramento de dados pessoais, MCP e LangChain.
 
@@ -159,16 +185,17 @@ esclarecimento.
 
 ```bash
 pip install "brier @ git+https://github.com/Mangaba-ai/brier"
-brier-serve --porta 8790 [--modelo v5|v3|v2|comite] [--auditoria auditoria.jsonl] [--mascarar-pii] [--neutralizar-injecao]
+brier-serve --porta 8790 [--modelo v5|zero|zero-local|v3|v2|comite] [--auditoria auditoria.jsonl] [--mascarar-pii] [--neutralizar-injecao]
 ```
 
 Os adaptadores ficam no Hugging Face e baixam sozinhos na primeira execução:
-[mangaba-ai/brier-v5](https://huggingface.co/mangaba-ai/brier-v5) (acesso aprovado),
+[mangaba-ai/brier-v5](https://huggingface.co/mangaba-ai/brier-v5) e
+[mangaba-ai/brier-zero](https://huggingface.co/mangaba-ai/brier-zero) (acesso aprovado),
 [mangaba-ai/brier-v3](https://huggingface.co/mangaba-ai/brier-v3) e [mangaba-ai/brier-v2](https://huggingface.co/mangaba-ai/brier-v2).
 
 ```python
 from brier import Brier
-b = Brier(mascarar_pii=True)                        # v5 (sem acesso, v3); Brier("v3"), Brier("v2")
+b = Brier(mascarar_pii=True)                        # v5 (sem acesso, v3); Brier("zero"), Brier("v3"), Brier("v2")
 b.decide(texto, perguntas, min_confidence=0.8)     # "abstencao" lista as perguntas abaixo do mínimo
 b.decide_lote([texto1, texto2, texto3], perguntas)  # vários textos numa chamada
 ```

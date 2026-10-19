@@ -7,6 +7,10 @@ Versões (parâmetro `modelo`, ou variável de ambiente BRIER_MODELO):
   - "v3"               Qwen3-4B + LoRA do Brier, treinado também contra injeção de instruções;
   - "v2"               Qwen3-4B + LoRA do Brier, o mais preciso em texto confiável;
   - "comite"           v2 + v3 com a média das probabilidades;
+  - "zero"             Brier-0: v5 destilado do mangaba-titan, em cascata — nas perguntas de escolha e
+                       sim/não com confiança < 0,9 consulta o titan (BRIER_PROFESSOR_CHAVE; veja cascata.py).
+                       Sem a chave, responde só o aluno;
+  - "zero-local"       só o aluno do Brier-0, sem consultar o professor;
   - uma pasta local ou um repositório do Hugging Face com adaptadores do Brier.
 
 Recursos para todas as versões:
@@ -34,6 +38,8 @@ VERSOES = {
     "v3": ["mangaba-ai/brier-v3"],
     "v2": ["mangaba-ai/brier-v2"],
     "comite": ["mangaba-ai/brier-v2", "mangaba-ai/brier-v3"],
+    "zero": ["mangaba-ai/brier-zero"],
+    "zero-local": ["mangaba-ai/brier-zero"],
 }
 MODELO_PADRAO = os.environ.get("BRIER_MODELO", "v5")
 RESERVA = "v3"  # usado quando o padrão é o v5 e a conta não tem acesso aos pesos dele
@@ -85,6 +91,10 @@ class Brier:
             caminhos = _resolve(RESERVA)
             self.agente = MotorQwen(caminhos, dispositivo=dispositivo, max_state=max_state)
         self.nome_modelo = "+".join(caminhos)
+        if self.versao == "zero":
+            from .cascata import MotorCascata
+            self.agente = MotorCascata(self.agente)
+            self.nome_modelo += f"→{self.agente.professor.modelo}"
         self.mascarar_pii = mascarar_pii
         self.neutralizar_injecao = neutralizar_injecao
         self.auditoria = Path(auditoria) if auditoria else None
@@ -93,7 +103,8 @@ class Brier:
 
     @property
     def rotulo(self) -> str:
-        return {"v5": "brier-5", "v3": "brier-3", "v2": "brier-2", "comite": "brier-comite"}.get(self.versao, "brier")
+        return {"v5": "brier-5", "v3": "brier-3", "v2": "brier-2", "comite": "brier-comite",
+                "zero": "brier-0", "zero-local": "brier-0-local"}.get(self.versao, "brier")
 
     # ---------- ganchos
     def _registra(self, ctx: dict, resposta: dict):

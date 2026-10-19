@@ -5,7 +5,7 @@
   POST /v1/systemone     mesmo corpo do /v1/decide (compatibilidade para quem migra)
   GET  /v1/models        GET /saude
 
-Uso: brier-serve [--modelo v5|v3|v2|comite|<pasta>] --porta 8790 [--auditoria auditoria.jsonl]
+Uso: brier-serve [--modelo v5|zero|zero-local|v3|v2|comite|<pasta>] --porta 8790 [--auditoria auditoria.jsonl]
      [--mascarar-pii] [--neutralizar-injecao]
 """
 import argparse
@@ -90,7 +90,7 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Servidor do Brier")
-    ap.add_argument("--modelo", default=MODELO_PADRAO, help="v5 (padrão; sem acesso, v3), v3, v2, comite, ou pasta/repositório no Hugging Face")
+    ap.add_argument("--modelo", default=MODELO_PADRAO, help="v5 (padrão; sem acesso, v3), zero (Brier-0 em cascata), zero-local, v3, v2, comite, ou pasta/repositório no Hugging Face")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--porta", type=int, default=8790)
     ap.add_argument("--dispositivo", default=None, help="cuda, mps ou cpu (padrão: o melhor disponível)")
